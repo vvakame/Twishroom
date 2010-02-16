@@ -12,8 +12,11 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.widget.Button;
 
-public class TwishroomActivity extends Activity {
+public class TwishroomActivity extends Activity implements OnClickListener {
 	private static final String ACTION_INTERCEPT = "com.adamrocker.android.simeji.ACTION_INTERCEPT";
 	private static final String REPLACE_KEY = "replace_key";
 
@@ -26,18 +29,9 @@ public class TwishroomActivity extends Activity {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+
 		Intent intent = getIntent();
 		String action = intent.getAction();
-
-		// うまくTwitterさんと会話できない...
-		for (int i = 0; i < 3; i++) {
-			try {
-				testTwitter();
-				break;
-			} catch (TwitterException e) {
-				e.printStackTrace();
-			}
-		}
 
 		if (action != null && ACTION_INTERCEPT.equals(action)) {
 			// Simejiから呼び出された時
@@ -47,6 +41,7 @@ public class TwishroomActivity extends Activity {
 		} else {
 			// Simeji以外から呼出された時
 			setContentView(R.layout.main);
+			((Button) findViewById(R.id.twit)).setOnClickListener(this);
 		}
 	}
 
@@ -99,5 +94,19 @@ public class TwishroomActivity extends Activity {
 			break;
 		}
 		return ret;
+	}
+
+	public void onClick(View v) {
+		switch (v.getId()) {
+		case R.id.twit:
+			try {
+				testTwitter();
+			} catch (TwitterException e) {
+				e.printStackTrace();
+			}
+			break;
+		default:
+			break;
+		}
 	}
 }
