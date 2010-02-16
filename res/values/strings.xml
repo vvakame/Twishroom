@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="hello">Hello World, Twishroom!</string>
+    <string name="app_name">Twishroom</string>
+<string name="preferences">設定</string>
+<string name="twitter_preferences">Twitterに関する設定</string>
+<string name="twitter_id">TwitterのID</string>
+<string name="twitter_password">Twitterのパスワード</string>
+</resources>
