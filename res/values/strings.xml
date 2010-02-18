@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="provider_authorities">jp.ne.hatena.vvakame.twishroom</string>
     <string name="hello">Hello World, Twishroom!</string>
     <string name="app_name">Twishroom</string>
 <string name="preferences">設定</string>

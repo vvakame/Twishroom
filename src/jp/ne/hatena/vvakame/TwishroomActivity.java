@@ -1,11 +1,7 @@
 package jp.ne.hatena.vvakame;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import twitter4j.Twitter;
+import twitter4j.PagableResponseList;
 import twitter4j.TwitterException;
-import twitter4j.TwitterFactory;
 import twitter4j.User;
 import android.app.Activity;
 import android.content.Intent;
@@ -21,9 +17,6 @@ public class TwishroomActivity extends Activity implements OnClickListener {
 	private static final String REPLACE_KEY = "replace_key";
 
 	private static final int MENU_PREFERENCES = 1;
-
-	private Twitter tw = null;
-	private int[] friendsIds = null;
 
 	/** Called when the activity is first created. */
 	@Override
@@ -50,24 +43,6 @@ public class TwishroomActivity extends Activity implements OnClickListener {
 		data.putExtra(REPLACE_KEY, result);
 		setResult(RESULT_OK, data);
 		finish();
-	}
-
-	private void testTwitter() throws TwitterException {
-		if (tw == null) {
-			String twitterId = PreferencesActivity.getTwitterId(this);
-			String twitterPw = PreferencesActivity.getTwitterPassword(this);
-			tw = new TwitterFactory().getInstance(twitterId, twitterPw);
-		}
-		if (friendsIds == null) {
-			friendsIds = tw.getFollowersIDs().getIDs();
-		}
-
-		List<User> userList = new ArrayList<User>();
-		for (int id : friendsIds) {
-			User user = tw.showUser(id);
-			userList.add(user);
-			user.getScreenName();
-		}
 	}
 
 	@Override
@@ -99,11 +74,24 @@ public class TwishroomActivity extends Activity implements OnClickListener {
 	public void onClick(View v) {
 		switch (v.getId()) {
 		case R.id.twit:
+			PagableResponseList<User> list = null;
 			try {
-				testTwitter();
+				list = TwitterUtil.getFriends(this);
 			} catch (TwitterException e) {
 				e.printStackTrace();
+				return;
 			}
+			
+			FriendsDao dao = new FriendsDao(this);
+			
+			for(User user : list){
+				FriendsModel model = new FriendsModel();
+				model.setScreenName(user.getScreenName());
+				model.setName(user.getName());
+				dao.save(model);
+			}
+			
+			Object obj = TwitterUtil.getFriendsData(this);
 			break;
 		default:
 			break;

@@ -3,7 +3,7 @@
 	package="jp.ne.hatena.vvakame" android:versionCode="1"
 	android:versionName="1.0">
 	<application android:icon="@drawable/icon" android:label="@string/app_name">
-		<activity android:label="@string/app_name" android:name="TwishroomActivity">
+		<activity android:label="@string/app_name" android:name="TwishroomActivity"><provider android:name="TwishroomProvider" android:authorities="jp.ne.hatena.vvakame.TwishrommProvider" />
 			<intent-filter>
 				<action android:name="android.intent.action.MAIN" />
 				<category android:name="android.intent.category.LAUNCHER" />
@@ -16,10 +16,9 @@
 				<category android:name="android.intent.category.DEFAULT" />
 			</intent-filter>
 		</activity>
-
-	<activity android:name="PreferencesActivity"></activity>
-</application>
+		<activity android:name="PreferencesActivity"></activity>
+		<provider android:authorities="jp.ne.hatena.vvakame.twishroom" android:name="TwishroomProvider"></provider>
+	</application>
 	<uses-sdk android:minSdkVersion="4" />
-
 	<uses-permission android:name="android.permission.INTERNET"></uses-permission>
-</manifest> 
+</manifest>
