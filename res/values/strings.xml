@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="edit_user_hint">ココに入力！←で、絞り込めるよ。</string>
 	<string name="app_name">Twishroom</string>
 	<string name="hello">Menuキーを押して最新化してくださいな。</string>
 

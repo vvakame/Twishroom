@@ -42,14 +42,15 @@ public class UserDao {
 	public void delete(UserModel model) {
 		SQLiteDatabase db = helper.getWritableDatabase();
 		try {
-			db.delete(UserModel.TABLE_NAME, UserModel.COLUMN_NAME + "=?",
-					new String[] { String.valueOf(model.getName()) });
+			db.delete(UserModel.TABLE_NAME,
+					UserModel.COLUMN_SCREEN_NAME + "=?", new String[] { String
+							.valueOf(model.getName()) });
 		} finally {
 			db.close();
 		}
 	}
 
-	public void truncate(){
+	public void truncate() {
 		SQLiteDatabase db = helper.getWritableDatabase();
 		try {
 			db.execSQL("delete from " + UserModel.TABLE_NAME);
@@ -57,7 +58,7 @@ public class UserDao {
 			db.close();
 		}
 	}
-	
+
 	public UserModel load(Long rowId) {
 		SQLiteDatabase db = helper.getReadableDatabase();
 		Cursor cursor = null;
@@ -82,8 +83,9 @@ public class UserDao {
 
 		UserModel model = null;
 		try {
-			cursor = db.query(UserModel.TABLE_NAME, null, UserModel.COLUMN_NAME
-					+ "=?", new String[] { name }, null, null, null);
+			cursor = db.query(UserModel.TABLE_NAME, null,
+					UserModel.COLUMN_SCREEN_NAME + "=?", new String[] { name },
+					null, null, null);
 			cursor.moveToFirst();
 			model = getUserModel(cursor);
 		} finally {
@@ -99,14 +101,16 @@ public class UserDao {
 
 		List<UserModel> userList = null;
 		try {
-			cursor = db.query(UserModel.TABLE_NAME, null, UserModel.COLUMN_NAME
-					+ " like ? || '%'", new String[] { name }, null, null,
-					UserModel.COLUMN_NAME);
+			cursor = db.query(UserModel.TABLE_NAME, null,
+					UserModel.COLUMN_SCREEN_NAME + " like ? || '%'",
+					new String[] { name }, null, null, "upper("
+							+ UserModel.COLUMN_SCREEN_NAME + ")");
 
 			userList = new ArrayList<UserModel>();
-			while (cursor.moveToNext()) {
-				UserModel model = getUserModel(cursor);
-				userList.add(model);
+			cursor.moveToFirst();
+			while (!cursor.isAfterLast()) {
+				userList.add(getUserModel(cursor));
+				cursor.moveToNext();
 			}
 		} finally {
 			cursor.close();
@@ -122,7 +126,7 @@ public class UserDao {
 		List<UserModel> modelList;
 		try {
 			cursor = db.query(UserModel.TABLE_NAME, null, null, null, null,
-					null, UserModel.COLUMN_ID);
+					null, "upper(" + UserModel.COLUMN_SCREEN_NAME + ")");
 			modelList = new ArrayList<UserModel>();
 			cursor.moveToFirst();
 			while (!cursor.isAfterLast()) {
@@ -136,6 +140,23 @@ public class UserDao {
 		return modelList;
 	}
 
+	public long countAll() {
+		SQLiteDatabase db = helper.getReadableDatabase();
+		Cursor cursor = null;
+		long count = 0;
+
+		try {
+			cursor = db.rawQuery(
+					"select count(*) from " + UserModel.TABLE_NAME, null);
+			cursor.moveToFirst();
+			count = cursor.getLong(0);
+		} finally {
+			cursor.close();
+			db.close();
+		}
+		return count;
+	}
+
 	private UserModel getUserModel(Cursor cursor) {
 		UserModel model = new UserModel();
 
@@ -145,5 +166,4 @@ public class UserDao {
 
 		return model;
 	}
-
 }

@@ -8,11 +8,22 @@ import jp.ne.hatena.vvakame.TwitterAgent.TwitterResponse;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.EditText;
+import android.widget.ListView;
+import android.widget.AdapterView.OnItemClickListener;
 
-public class TwishroomActivity extends Activity {
+public class TwishroomActivity extends Activity implements TextWatcher,
+		OnItemClickListener {
+	// TODO OnItemLongClickListener を後日実装するように
+
 	private static final String ACTION_INTERCEPT = "com.adamrocker.android.simeji.ACTION_INTERCEPT";
 	private static final String REPLACE_KEY = "replace_key";
 
@@ -24,24 +35,52 @@ public class TwishroomActivity extends Activity {
 		Intent intent = getIntent();
 		String action = intent.getAction();
 
-		if (action != null && ACTION_INTERCEPT.equals(action)) {
-			// Simejiから呼び出された時
-			String pullStr = intent.getStringExtra(REPLACE_KEY);
+		boolean prefixAtmark = false;
+		String pullStr = "";
+		String name = "";
 
+		// Simejiから呼び出された時
+		if (action != null && ACTION_INTERCEPT.equals(action)) {
+			pullStr = intent.getStringExtra(REPLACE_KEY);
+			if (pullStr != null && !pullStr.equals("")
+					&& pullStr.charAt(0) == '@') {
+				prefixAtmark = true;
+			}
 			UserModel user = detectUser(pullStr);
 
 			if (user != null) {
-				String name = user.getName();
-				if (pullStr != null && !pullStr.equals("")
-						&& pullStr.charAt(0) == '@') {
+				name = user.getName();
+				if (prefixAtmark) {
 					name = "@" + name;
 				}
 
 				pushToSimeji(name);
+				return;
 			}
-		} else {
-			// Simeji以外から呼出された時
+		}
+
+		// Simeji以外から呼出されたか、データがないとき
+		UserDao dao = new UserDao(this);
+		long count = dao.countAll();
+		if (count != 0) {
 			setContentView(R.layout.main);
+
+			// EditText周りの処理
+			EditText eText = (EditText) findViewById(R.id.editName);
+			eText.addTextChangedListener(this);
+			eText.setText(pullStr);
+
+			// ListView周りの処理
+			name = prefixAtmark ? pullStr.substring(1) : pullStr;
+			List<UserModel> userList = dao.search(name);
+			ArrayAdapter<UserModel> userAdapter = new TwitterAdapter(this,
+					R.layout.view_for_list, userList);
+			ListView listView = (ListView) findViewById(R.id.userList);
+			listView.setAdapter(userAdapter);
+			// TODO simejiからの呼び出しじゃない場合は挙動を変えるべき
+			listView.setOnItemClickListener(this);
+		} else {
+			setContentView(R.layout.main_data_none);
 		}
 	}
 
@@ -105,6 +144,8 @@ public class TwishroomActivity extends Activity {
 		for (UserModel model : friendsList) {
 			dao.save(model);
 		}
+
+		// TODO 画面の再描画を行うべき
 	}
 
 	private UserModel detectUser(String name) {
@@ -124,5 +165,52 @@ public class TwishroomActivity extends Activity {
 		} else {
 			return null;
 		}
+	}
+
+	@Override
+	public void afterTextChanged(Editable s) {
+	}
+
+	@Override
+	public void beforeTextChanged(CharSequence s, int start, int count,
+			int after) {
+	}
+
+	@Override
+	public void onTextChanged(CharSequence s, int start, int before, int count) {
+		// ListView周りの処理
+		String origStr = s.toString();
+		boolean prefixAtmark = false;
+		if (origStr != null && !origStr.equals("") && origStr.charAt(0) == '@') {
+			prefixAtmark = true;
+		}
+		String name = prefixAtmark ? origStr.substring(1) : origStr;
+
+		// TODO 入力ディレイが1秒あるまで再検索しない... とかするべき
+
+		UserDao dao = new UserDao(this);
+
+		List<UserModel> userList = dao.search(name);
+		ArrayAdapter<UserModel> userAdapter = new TwitterAdapter(this,
+				R.layout.view_for_list, userList);
+		((ListView) findViewById(R.id.userList)).setAdapter(userAdapter);
+	}
+
+	@Override
+	public void onItemClick(AdapterView<?> arg0, View arg1, int arg2, long arg3) {
+		TwitterAdapter adap = (TwitterAdapter) arg0.getAdapter();
+		UserModel model = adap.getItem(arg2);
+		EditText eText = (EditText) findViewById(R.id.editName);
+
+		String origStr = eText.getText().toString();
+		boolean prefixAtmark = false;
+		if (origStr != null && !origStr.equals("") && origStr.charAt(0) == '@') {
+			prefixAtmark = true;
+		}
+
+		String name = model.getScreenName();
+		name = prefixAtmark ? "@" + name : name;
+
+		pushToSimeji(name);
 	}
 }
