@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="provider_authorities">jp.ne.hatena.vvakame.twishroom</string>
-    <string name="hello">Hello World, Twishroom!</string>
-    <string name="app_name">Twishroom</string>
-<string name="preferences">設定</string>
-<string name="twitter_preferences">Twitterに関する設定</string>
-<string name="twitter_id">TwitterのID</string>
+	<string name="app_name">Twishroom</string>
+	<string name="hello">Menuキーを押して最新化してくださいな。</string>
 
-<string name="refresh_friends">更新(friends)</string>
+	<string name="refresh_friends">フォロり最新化</string>
+	<string name="preferences">設定</string>
+	<string name="twitter_preferences">Twitterに関する設定</string>
+	<string name="twitter_id">TwitterのID</string>
 </resources>

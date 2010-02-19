@@ -29,9 +29,8 @@ public class UserDao {
 			if (rowId == null) {
 				rowId = db.insert(UserModel.TABLE_NAME, null, values);
 			} else {
-				db.update(UserModel.TABLE_NAME, values,
-						UserModel.COLUMN_ID + "=?", new String[] { String
-								.valueOf(rowId) });
+				db.update(UserModel.TABLE_NAME, values, UserModel.COLUMN_ID
+						+ "=?", new String[] { String.valueOf(rowId) });
 			}
 			result = load(rowId);
 		} finally {
@@ -43,22 +42,31 @@ public class UserDao {
 	public void delete(UserModel model) {
 		SQLiteDatabase db = helper.getWritableDatabase();
 		try {
-			db.delete(UserModel.TABLE_NAME, UserModel.COLUMN_ID + "=?",
-					new String[] { String.valueOf(model.getRowId()) });
+			db.delete(UserModel.TABLE_NAME, UserModel.COLUMN_NAME + "=?",
+					new String[] { String.valueOf(model.getName()) });
 		} finally {
 			db.close();
 		}
 	}
 
+	public void truncate(){
+		SQLiteDatabase db = helper.getWritableDatabase();
+		try {
+			db.execSQL("delete from " + UserModel.TABLE_NAME);
+		} finally {
+			db.close();
+		}
+	}
+	
 	public UserModel load(Long rowId) {
 		SQLiteDatabase db = helper.getReadableDatabase();
 		Cursor cursor = null;
 
 		UserModel model = null;
 		try {
-			cursor = db.query(UserModel.TABLE_NAME, null,
-					UserModel.COLUMN_ID + "=?", new String[] { String
-							.valueOf(rowId) }, null, null, null);
+			cursor = db.query(UserModel.TABLE_NAME, null, UserModel.COLUMN_ID
+					+ "=?", new String[] { String.valueOf(rowId) }, null, null,
+					null);
 			cursor.moveToFirst();
 			model = getUserModel(cursor);
 		} finally {
@@ -66,6 +74,45 @@ public class UserDao {
 			db.close();
 		}
 		return model;
+	}
+
+	public UserModel load(String name) {
+		SQLiteDatabase db = helper.getReadableDatabase();
+		Cursor cursor = null;
+
+		UserModel model = null;
+		try {
+			cursor = db.query(UserModel.TABLE_NAME, null, UserModel.COLUMN_NAME
+					+ "=?", new String[] { name }, null, null, null);
+			cursor.moveToFirst();
+			model = getUserModel(cursor);
+		} finally {
+			cursor.close();
+			db.close();
+		}
+		return model;
+	}
+
+	public List<UserModel> search(String name) {
+		SQLiteDatabase db = helper.getReadableDatabase();
+		Cursor cursor = null;
+
+		List<UserModel> userList = null;
+		try {
+			cursor = db.query(UserModel.TABLE_NAME, null, UserModel.COLUMN_NAME
+					+ " like ? || '%'", new String[] { name }, null, null,
+					UserModel.COLUMN_NAME);
+
+			userList = new ArrayList<UserModel>();
+			while (cursor.moveToNext()) {
+				UserModel model = getUserModel(cursor);
+				userList.add(model);
+			}
+		} finally {
+			cursor.close();
+			db.close();
+		}
+		return userList;
 	}
 
 	public List<UserModel> list() {

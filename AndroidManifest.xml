@@ -17,7 +17,6 @@
 			</intent-filter>
 		</activity>
 		<activity android:name="PreferencesActivity"></activity>
-		<provider android:authorities="jp.ne.hatena.vvakame.twishroom" android:name="TwishroomProvider"></provider>
 	</application>
 	<uses-sdk android:minSdkVersion="4" />
 	<uses-permission android:name="android.permission.INTERNET"></uses-permission>
