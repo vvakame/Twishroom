@@ -26,7 +26,7 @@ public class TwishroomProvider extends ContentProvider implements DBHelperIF {
 	@Override
 	public Uri insert(Uri uri, ContentValues values) {
 		SQLiteDatabase db = dbHelper.getWritableDatabase();
-		db.insert(FriendsModel.TABLE_NAME, null, values);
+		db.insert(UserModel.TABLE_NAME, null, values);
 		return null;
 	}
 
@@ -35,7 +35,7 @@ public class TwishroomProvider extends ContentProvider implements DBHelperIF {
 			String[] selectionArgs, String sortOrder) {
 		SQLiteDatabase db = dbHelper.getReadableDatabase();
 		SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
-		qb.setTables(FriendsModel.TABLE_NAME);
+		qb.setTables(UserModel.TABLE_NAME);
 		Cursor cur = qb.query(db, projection, selection, selectionArgs, null,
 				null, null);
 		return cur;

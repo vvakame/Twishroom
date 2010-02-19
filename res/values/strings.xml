@@ -6,5 +6,6 @@
 <string name="preferences">設定</string>
 <string name="twitter_preferences">Twitterに関する設定</string>
 <string name="twitter_id">TwitterのID</string>
-<string name="twitter_password">Twitterのパスワード</string>
+
+<string name="refresh_friends">更新(friends)</string>
 </resources>

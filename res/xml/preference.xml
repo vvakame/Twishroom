@@ -1,7 +1,7 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
-	<PreferenceCategory>
+	<PreferenceCategory android:title="@string/twitter_preferences">
 		<EditTextPreference android:key="twitter_id"
 			android:title="@string/twitter_id"></EditTextPreference>
-		<EditTextPreference android:title="@string/twitter_password" android:password="true" android:key="twitter_password"></EditTextPreference>
+		
 	</PreferenceCategory>
 </PreferenceScreen>

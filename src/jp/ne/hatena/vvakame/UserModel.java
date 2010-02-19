@@ -2,7 +2,7 @@ package jp.ne.hatena.vvakame;
 
 import java.io.Serializable;
 
-public class FriendsModel implements Serializable {
+public class UserModel implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	public static final String TABLE_NAME = "twitter";

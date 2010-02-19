@@ -7,10 +7,10 @@ import android.database.sqlite.SQLiteOpenHelper;
 public class DBHelper extends SQLiteOpenHelper implements DBHelperIF {
 
 	private static final String DB_CREATE = "create table "
-			+ FriendsModel.TABLE_NAME + " (" + FriendsModel.COLUMN_ID
+			+ UserModel.TABLE_NAME + " (" + UserModel.COLUMN_ID
 			+ " integer primary key autoincrement not null, "
-			+ FriendsModel.COLUMN_SCREEN_NAME + " text not null, "
-			+ FriendsModel.COLUMN_NAME + " text not null);";
+			+ UserModel.COLUMN_SCREEN_NAME + " text not null, "
+			+ UserModel.COLUMN_NAME + " text not null);";
 
 	public DBHelper(Context con) {
 		super(con, DB_NAME, null, DB_VERSION);

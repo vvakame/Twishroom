@@ -8,29 +8,29 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
-public class FriendsDao {
+public class UserDao {
 
 	private DBHelper helper = null;
 
-	public FriendsDao(Context con) {
+	public UserDao(Context con) {
 		helper = new DBHelper(con);
 	}
 
-	public FriendsModel save(FriendsModel model) {
+	public UserModel save(UserModel model) {
 		SQLiteDatabase db = helper.getWritableDatabase();
-		FriendsModel result = null;
+		UserModel result = null;
 		try {
 			ContentValues values = new ContentValues();
-			values.put(FriendsModel.COLUMN_SCREEN_NAME, model.getScreenName());
-			values.put(FriendsModel.COLUMN_NAME, model.getName());
+			values.put(UserModel.COLUMN_SCREEN_NAME, model.getScreenName());
+			values.put(UserModel.COLUMN_NAME, model.getName());
 
 			Long rowId = model.getRowId();
 			// IDがnullの場合はinsert
 			if (rowId == null) {
-				rowId = db.insert(FriendsModel.TABLE_NAME, null, values);
+				rowId = db.insert(UserModel.TABLE_NAME, null, values);
 			} else {
-				db.update(FriendsModel.TABLE_NAME, values,
-						FriendsModel.COLUMN_ID + "=?", new String[] { String
+				db.update(UserModel.TABLE_NAME, values,
+						UserModel.COLUMN_ID + "=?", new String[] { String
 								.valueOf(rowId) });
 			}
 			result = load(rowId);
@@ -40,27 +40,27 @@ public class FriendsDao {
 		return result;
 	}
 
-	public void delete(FriendsModel model) {
+	public void delete(UserModel model) {
 		SQLiteDatabase db = helper.getWritableDatabase();
 		try {
-			db.delete(FriendsModel.TABLE_NAME, FriendsModel.COLUMN_ID + "=?",
+			db.delete(UserModel.TABLE_NAME, UserModel.COLUMN_ID + "=?",
 					new String[] { String.valueOf(model.getRowId()) });
 		} finally {
 			db.close();
 		}
 	}
 
-	public FriendsModel load(Long rowId) {
+	public UserModel load(Long rowId) {
 		SQLiteDatabase db = helper.getReadableDatabase();
 		Cursor cursor = null;
 
-		FriendsModel model = null;
+		UserModel model = null;
 		try {
-			cursor = db.query(FriendsModel.TABLE_NAME, null,
-					FriendsModel.COLUMN_ID + "=?", new String[] { String
+			cursor = db.query(UserModel.TABLE_NAME, null,
+					UserModel.COLUMN_ID + "=?", new String[] { String
 							.valueOf(rowId) }, null, null, null);
 			cursor.moveToFirst();
-			model = getFriendsModel(cursor);
+			model = getUserModel(cursor);
 		} finally {
 			cursor.close();
 			db.close();
@@ -68,18 +68,18 @@ public class FriendsDao {
 		return model;
 	}
 
-	public List<FriendsModel> list() {
+	public List<UserModel> list() {
 		SQLiteDatabase db = helper.getReadableDatabase();
 		Cursor cursor = null;
 
-		List<FriendsModel> modelList;
+		List<UserModel> modelList;
 		try {
-			cursor = db.query(FriendsModel.TABLE_NAME, null, null, null, null,
-					null, FriendsModel.COLUMN_ID);
-			modelList = new ArrayList<FriendsModel>();
+			cursor = db.query(UserModel.TABLE_NAME, null, null, null, null,
+					null, UserModel.COLUMN_ID);
+			modelList = new ArrayList<UserModel>();
 			cursor.moveToFirst();
 			while (!cursor.isAfterLast()) {
-				modelList.add(getFriendsModel(cursor));
+				modelList.add(getUserModel(cursor));
 				cursor.moveToNext();
 			}
 		} finally {
@@ -89,8 +89,8 @@ public class FriendsDao {
 		return modelList;
 	}
 
-	private FriendsModel getFriendsModel(Cursor cursor) {
-		FriendsModel model = new FriendsModel();
+	private UserModel getUserModel(Cursor cursor) {
+		UserModel model = new UserModel();
 
 		model.setRowId(cursor.getLong(0));
 		model.setScreenName(cursor.getString(1));

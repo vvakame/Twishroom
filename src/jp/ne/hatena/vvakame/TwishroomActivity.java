@@ -1,22 +1,25 @@
 package jp.ne.hatena.vvakame;
 
-import twitter4j.PagableResponseList;
-import twitter4j.TwitterException;
-import twitter4j.User;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+import jp.ne.hatena.vvakame.TwitterAgent.TwitterResponse;
+
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
+import android.widget.Toast;
 
 public class TwishroomActivity extends Activity implements OnClickListener {
 	private static final String ACTION_INTERCEPT = "com.adamrocker.android.simeji.ACTION_INTERCEPT";
 	private static final String REPLACE_KEY = "replace_key";
-
-	private static final int MENU_PREFERENCES = 1;
 
 	/** Called when the activity is first created. */
 	@Override
@@ -47,12 +50,10 @@ public class TwishroomActivity extends Activity implements OnClickListener {
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
-		MenuItem pref = menu.add(Menu.NONE, MENU_PREFERENCES, Menu.NONE,
-				getText(R.string.preferences));
-
-		pref.setIcon(android.R.drawable.ic_menu_preferences);
-
-		return super.onCreateOptionsMenu(menu);
+		super.onCreateOptionsMenu(menu);
+		MenuInflater inflater = getMenuInflater();
+		inflater.inflate(R.menu.main, menu);
+		return true;
 	}
 
 	@Override
@@ -60,7 +61,35 @@ public class TwishroomActivity extends Activity implements OnClickListener {
 		boolean ret = true;
 		Intent intent = null;
 		switch (item.getItemId()) {
-		case MENU_PREFERENCES:
+		case R.id.refresh_friends:
+
+			List<UserModel> friendsList = new ArrayList<UserModel>();
+
+			TwitterAgent agent = new TwitterAgent();
+
+			long cur = TwitterAgent.INITIAL_CURSOL;
+			while (cur != TwitterAgent.END_CURSOL) {
+				TwitterResponse res = null;
+				try {
+					res = agent.getFriendsStatus(this, cur);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+				List<UserModel> list = res.getUserList();
+				cur = res.getNextCursor();
+
+				friendsList.addAll(list);
+			}
+
+			UserDao dao = new UserDao(this);
+
+			for (UserModel model : friendsList) {
+				dao.save(model);
+			}
+
+			Object obj = dao.list();
+			break;
+		case R.id.preferences:
 			intent = new Intent(this, PreferencesActivity.class);
 			startActivity(intent);
 			break;
@@ -74,24 +103,7 @@ public class TwishroomActivity extends Activity implements OnClickListener {
 	public void onClick(View v) {
 		switch (v.getId()) {
 		case R.id.twit:
-			PagableResponseList<User> list = null;
-			try {
-				list = TwitterUtil.getFriends(this);
-			} catch (TwitterException e) {
-				e.printStackTrace();
-				return;
-			}
-			
-			FriendsDao dao = new FriendsDao(this);
-			
-			for(User user : list){
-				FriendsModel model = new FriendsModel();
-				model.setScreenName(user.getScreenName());
-				model.setName(user.getName());
-				dao.save(model);
-			}
-			
-			Object obj = TwitterUtil.getFriendsData(this);
+			Toast.makeText(this, "Tweet!!", Toast.LENGTH_SHORT).show();
 			break;
 		default:
 			break;
