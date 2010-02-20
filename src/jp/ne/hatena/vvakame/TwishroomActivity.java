@@ -1,7 +1,6 @@
 package jp.ne.hatena.vvakame;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 import jp.ne.hatena.vvakame.TwitterAgent.TwitterResponse;
@@ -22,6 +21,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.Toast;
 import android.widget.AdapterView.OnItemClickListener;
 
 public class TwishroomActivity extends Activity implements TextWatcher,
@@ -110,6 +110,12 @@ public class TwishroomActivity extends Activity implements TextWatcher,
 		Intent intent = null;
 		switch (item.getItemId()) {
 		case R.id.refresh_friends:
+			String twitterId = PreferencesActivity.getTwitterId(this);
+			if ("".equals(twitterId)) {
+				Toast.makeText(this, R.string.announce_first_step,
+						Toast.LENGTH_SHORT).show();
+				return false;
+			}
 			refreshFriendsStatus();
 			break;
 
@@ -139,8 +145,15 @@ public class TwishroomActivity extends Activity implements TextWatcher,
 				super.handleMessage(msg);
 				if (done) {
 					dismissDialog(DIALOG_PROGRESS);
-					String origStr = ((EditText) findViewById(R.id.editName))
-							.getText().toString();
+					EditText eText = (EditText) findViewById(R.id.editName);
+					if (eText == null) {
+						setContentView(R.layout.main);
+						eText = (EditText) findViewById(R.id.editName);
+						eText.addTextChangedListener(TwishroomActivity.this);
+						ListView listView = (ListView) findViewById(R.id.userList);
+						listView.setOnItemClickListener(TwishroomActivity.this);
+					}
+					String origStr = eText.getText().toString();
 					refreshListView(origStr);
 				} else {
 					progHandler.sendEmptyMessageDelayed(0, 100);
@@ -194,6 +207,7 @@ public class TwishroomActivity extends Activity implements TextWatcher,
 			progDialog.setTitle(getString(R.string.now_get_friends));
 			progDialog.setMessage(getString(R.string.wait_a_moment));
 			progDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+			progDialog.setCancelable(false);
 
 			return progDialog;
 		default:

@@ -10,4 +10,5 @@
 	<string name="twitter_id">TwitterのID</string>
 <string name="now_get_friends">フォロり最新化中</string>
 <string name="wait_a_moment">ちょっと待ってね...</string>
+<string name="announce_first_step">Menu→設定 から、TwitterIDを入力してください。</string>
 </resources>

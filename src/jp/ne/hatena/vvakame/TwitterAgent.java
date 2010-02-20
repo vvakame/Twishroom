@@ -12,7 +12,6 @@ import org.xmlpull.v1.XmlPullParserException;
 
 import android.content.Context;
 import android.util.Xml;
-import android.widget.Toast;
 
 public class TwitterAgent {
 
