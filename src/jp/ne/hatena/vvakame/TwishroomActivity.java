@@ -53,11 +53,12 @@ public class TwishroomActivity extends Activity implements TextWatcher,
 			UserModel user = detectUser(pullStr);
 
 			if (user != null) {
-				name = user.getName();
+				name = user.getScreenName();
 				if (prefixAtmark) {
 					name = "@" + name;
 				}
 
+				// TODO アクティビティ非表示のまま返すとsimejiが再度アクティブになるまで返した文字列が入力されない。
 				pushToSimeji(name);
 				return;
 			}
@@ -138,6 +139,9 @@ public class TwishroomActivity extends Activity implements TextWatcher,
 				super.handleMessage(msg);
 				if (done) {
 					dismissDialog(DIALOG_PROGRESS);
+					String origStr = ((EditText) findViewById(R.id.editName))
+							.getText().toString();
+					refreshListView(origStr);
 				} else {
 					progHandler.sendEmptyMessageDelayed(0, 100);
 				}
@@ -150,9 +154,11 @@ public class TwishroomActivity extends Activity implements TextWatcher,
 			@Override
 			public void run() {
 
-				List<UserModel> friendsList = new ArrayList<UserModel>();
-
 				TwitterAgent agent = new TwitterAgent();
+				long count = 0;
+
+				UserDao dao = new UserDao(TwishroomActivity.this);
+				dao.truncate();
 
 				long cur = TwitterAgent.INITIAL_CURSOL;
 				while (cur != TwitterAgent.END_CURSOL) {
@@ -161,21 +167,20 @@ public class TwishroomActivity extends Activity implements TextWatcher,
 						res = agent.getFriendsStatus(TwishroomActivity.this,
 								cur);
 					} catch (IOException e) {
+						// TODO 例外処理をかなり気合い入れてやるべき
 						e.printStackTrace();
 					}
 					List<UserModel> list = res.getUserList();
 					cur = res.getNextCursor();
 
-					friendsList.addAll(list);
+					// TODO ProgressDialogの状態を更新し、進捗がわかるようにするべき
+					count += list.size();
+
+					for (UserModel model : list) {
+						dao.save(model);
+					}
 				}
 
-				UserDao dao = new UserDao(TwishroomActivity.this);
-				dao.truncate();
-				for (UserModel model : friendsList) {
-					dao.save(model);
-				}
-
-				// TODO 画面の再描画を行うべき
 				done = true;
 			}
 		}.start();
@@ -232,8 +237,10 @@ public class TwishroomActivity extends Activity implements TextWatcher,
 
 	@Override
 	public void onTextChanged(CharSequence s, int start, int before, int count) {
-		// ListView周りの処理
-		String origStr = s.toString();
+		refreshListView(s.toString());
+	}
+
+	private void refreshListView(String origStr) {
 		boolean prefixAtmark = false;
 		if (origStr != null && !origStr.equals("") && origStr.charAt(0) == '@') {
 			prefixAtmark = true;

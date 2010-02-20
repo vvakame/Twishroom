@@ -12,6 +12,7 @@ import org.xmlpull.v1.XmlPullParserException;
 
 import android.content.Context;
 import android.util.Xml;
+import android.widget.Toast;
 
 public class TwitterAgent {
 
@@ -23,6 +24,8 @@ public class TwitterAgent {
 
 	public static final long INITIAL_CURSOL = -1;
 	public static final long END_CURSOL = 0;
+
+	private static final int INIT_CAPACITY = 100;
 
 	public class TwitterResponse {
 		private List<UserModel> userList = null;
@@ -56,8 +59,13 @@ public class TwitterAgent {
 			throws IOException {
 		URL url = null;
 		try {
+			String twitterId = PreferencesActivity.getTwitterId(con);
+			if("".equals(twitterId)){
+				// TODO UIスレッド以外から操作されている場合を考慮し例外を飛ばすべき
+				throw new IllegalArgumentException();
+			}
 			url = new URL("http://api.twitter.com/1/statuses/friends/"
-					+ PreferencesActivity.getTwitterId(con) + ".xml?cursor="
+					+  twitterId+ ".xml?cursor="
 					+ String.valueOf(cursor));
 		} catch (MalformedURLException e) {
 			throw new RuntimeException(e);
@@ -77,9 +85,7 @@ public class TwitterAgent {
 				String name = null;
 				switch (eventType) {
 				case XmlPullParser.START_DOCUMENT:
-					name = xmlParser.getName();
-					friendsList = new ArrayList<UserModel>();
-					currentFriend = new UserModel();
+					friendsList = new ArrayList<UserModel>(INIT_CAPACITY);
 					break;
 				case XmlPullParser.START_TAG:
 					name = xmlParser.getName();

@@ -24,12 +24,6 @@ public class PreferencesActivity extends PreferenceActivity implements
 				key, "");
 	}
 
-	public static String getTwitterPassword(Context con) {
-		String key = "twitter_password";
-		return PreferenceManager.getDefaultSharedPreferences(con).getString(
-				key, "");
-	}
-
 	@Override
 	public boolean onPreferenceChange(Preference preference, Object newValue) {
 		return true;
