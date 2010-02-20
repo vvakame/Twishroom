@@ -6,8 +6,12 @@ import java.util.List;
 
 import jp.ne.hatena.vvakame.TwitterAgent.TwitterResponse;
 import android.app.Activity;
+import android.app.Dialog;
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.Menu;
@@ -120,32 +124,82 @@ public class TwishroomActivity extends Activity implements TextWatcher,
 		return ret;
 	}
 
+	private boolean done = false;
+	private ProgressDialog progDialog = null;
+	private Handler progHandler = null;
+	private static final int DIALOG_PROGRESS = 1;
+
 	private void refreshFriendsStatus() {
-		List<UserModel> friendsList = new ArrayList<UserModel>();
-
-		TwitterAgent agent = new TwitterAgent();
-
-		long cur = TwitterAgent.INITIAL_CURSOL;
-		while (cur != TwitterAgent.END_CURSOL) {
-			TwitterResponse res = null;
-			try {
-				res = agent.getFriendsStatus(this, cur);
-			} catch (IOException e) {
-				e.printStackTrace();
+		// Handlerの準備
+		done = false;
+		progHandler = new Handler() {
+			@Override
+			public void handleMessage(Message msg) {
+				super.handleMessage(msg);
+				if (done) {
+					dismissDialog(DIALOG_PROGRESS);
+				} else {
+					progHandler.sendEmptyMessageDelayed(0, 100);
+				}
 			}
-			List<UserModel> list = res.getUserList();
-			cur = res.getNextCursor();
+		};
 
-			friendsList.addAll(list);
+		showDialog(DIALOG_PROGRESS);
+		progHandler.sendEmptyMessage(0);
+		new Thread() {
+			@Override
+			public void run() {
+
+				List<UserModel> friendsList = new ArrayList<UserModel>();
+
+				TwitterAgent agent = new TwitterAgent();
+
+				long cur = TwitterAgent.INITIAL_CURSOL;
+				while (cur != TwitterAgent.END_CURSOL) {
+					TwitterResponse res = null;
+					try {
+						res = agent.getFriendsStatus(TwishroomActivity.this,
+								cur);
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+					List<UserModel> list = res.getUserList();
+					cur = res.getNextCursor();
+
+					friendsList.addAll(list);
+				}
+
+				UserDao dao = new UserDao(TwishroomActivity.this);
+				dao.truncate();
+				for (UserModel model : friendsList) {
+					dao.save(model);
+				}
+
+				// TODO 画面の再描画を行うべき
+				done = true;
+			}
+		}.start();
+	}
+
+	@Override
+	protected Dialog onCreateDialog(int id) {
+		switch (id) {
+		case DIALOG_PROGRESS:
+			progDialog = new ProgressDialog(this);
+			progDialog.setTitle(getString(R.string.now_get_friends));
+			progDialog.setMessage(getString(R.string.wait_a_moment));
+			progDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+
+			return progDialog;
+		default:
+			break;
 		}
+		return null;
+	}
 
-		UserDao dao = new UserDao(this);
-		dao.truncate();
-		for (UserModel model : friendsList) {
-			dao.save(model);
-		}
-
-		// TODO 画面の再描画を行うべき
+	@Override
+	protected void onPrepareDialog(int id, Dialog dialog) {
+		super.onPrepareDialog(id, dialog);
 	}
 
 	private UserModel detectUser(String name) {
@@ -186,7 +240,7 @@ public class TwishroomActivity extends Activity implements TextWatcher,
 		}
 		String name = prefixAtmark ? origStr.substring(1) : origStr;
 
-		// TODO 入力ディレイが1秒あるまで再検索しない... とかするべき
+		// TODO 入力ディレイが1秒あるまで再検索しない... とかしたほうがいいかも？使ってみて決める
 
 		UserDao dao = new UserDao(this);
 

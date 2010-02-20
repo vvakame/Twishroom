@@ -4,6 +4,6 @@
 	android:layout_height="fill_parent">
 	
 <EditText android:layout_height="wrap_content" android:layout_width="fill_parent" android:id="@+id/editName" android:hint="@string/edit_user_hint"></EditText>
-<ListView android:layout_height="wrap_content" android:layout_width="fill_parent" android:id="@+id/userList"></ListView>
+<ListView android:layout_height="wrap_content" android:layout_width="fill_parent" android:id="@+id/userList" android:padding="10dip"></ListView>
 
 </LinearLayout>

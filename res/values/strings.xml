@@ -8,4 +8,6 @@
 	<string name="preferences">設定</string>
 	<string name="twitter_preferences">Twitterに関する設定</string>
 	<string name="twitter_id">TwitterのID</string>
+<string name="now_get_friends">フォロり最新化中</string>
+<string name="wait_a_moment">ちょっと待ってね...</string>
 </resources>
