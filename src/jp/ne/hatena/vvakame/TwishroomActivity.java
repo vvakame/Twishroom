@@ -182,6 +182,13 @@ public class TwishroomActivity extends Activity implements TextWatcher,
 					} catch (IOException e) {
 						// TODO 例外処理をかなり気合い入れてやるべき
 						e.printStackTrace();
+						done = true;
+						return;
+					} catch (TwitterException e) {
+						// TODO 例外処理をかなり気合い入れてやるべき
+						e.printStackTrace();
+						done = true;
+						return;
 					}
 					List<UserModel> list = res.getUserList();
 					cur = res.getNextCursor();

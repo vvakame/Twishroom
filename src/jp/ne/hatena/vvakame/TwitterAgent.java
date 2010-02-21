@@ -17,6 +17,7 @@ public class TwitterAgent {
 
 	public static final String TAG_USER = "user";
 	public static final String TAG_NEXT_CURSOR = "next_cursor";
+	public static final String TAG_ERROR = "error";
 
 	public static final String NAME = "name";
 	public static final String SCREEN_NAME = "screen_name";
@@ -50,22 +51,22 @@ public class TwitterAgent {
 	public TwitterAgent() {
 	}
 
-	public TwitterResponse getFriendsStatus(Context con) throws IOException {
+	public TwitterResponse getFriendsStatus(Context con) throws IOException,
+			TwitterException {
 		return getFriendsStatus(con, -1);
 	}
 
 	public TwitterResponse getFriendsStatus(Context con, long cursor)
-			throws IOException {
+			throws IOException, TwitterException {
 		URL url = null;
 		try {
 			String twitterId = PreferencesActivity.getTwitterId(con);
-			if("".equals(twitterId)){
+			if ("".equals(twitterId)) {
 				// TODO UIスレッド以外から操作されている場合を考慮し例外を飛ばすべき
 				throw new IllegalArgumentException();
 			}
 			url = new URL("http://api.twitter.com/1/statuses/friends/"
-					+  twitterId+ ".xml?cursor="
-					+ String.valueOf(cursor));
+					+ twitterId + ".xml?cursor=" + String.valueOf(cursor));
 		} catch (MalformedURLException e) {
 			throw new RuntimeException(e);
 		}
@@ -92,6 +93,8 @@ public class TwitterAgent {
 						currentFriend = new UserModel();
 					} else if (name.equalsIgnoreCase(TAG_NEXT_CURSOR)) {
 						nextCursor = Long.parseLong(xmlParser.nextText());
+					} else if (name.equalsIgnoreCase(TAG_ERROR)) {
+						throw new TwitterException(xmlParser.nextText());
 					} else if (currentFriend != null) {
 						if (name.equalsIgnoreCase(NAME)) {
 							currentFriend.setName(xmlParser.nextText());
