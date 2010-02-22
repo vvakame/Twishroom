@@ -10,14 +10,14 @@ import android.database.sqlite.SQLiteDatabase;
 
 public class UserDao {
 
-	private DBHelper helper = null;
+	private DBHelper mHelper = null;
 
 	public UserDao(Context con) {
-		helper = new DBHelper(con);
+		mHelper = new DBHelper(con);
 	}
 
 	public UserModel save(UserModel model) {
-		SQLiteDatabase db = helper.getWritableDatabase();
+		SQLiteDatabase db = mHelper.getWritableDatabase();
 		UserModel result = null;
 		try {
 			ContentValues values = new ContentValues();
@@ -40,7 +40,7 @@ public class UserDao {
 	}
 
 	public void delete(UserModel model) {
-		SQLiteDatabase db = helper.getWritableDatabase();
+		SQLiteDatabase db = mHelper.getWritableDatabase();
 		try {
 			db.delete(UserModel.TABLE_NAME,
 					UserModel.COLUMN_SCREEN_NAME + "=?", new String[] { String
@@ -51,7 +51,7 @@ public class UserDao {
 	}
 
 	public void truncate() {
-		SQLiteDatabase db = helper.getWritableDatabase();
+		SQLiteDatabase db = mHelper.getWritableDatabase();
 		try {
 			db.execSQL("delete from " + UserModel.TABLE_NAME);
 		} finally {
@@ -60,7 +60,7 @@ public class UserDao {
 	}
 
 	public UserModel load(Long rowId) {
-		SQLiteDatabase db = helper.getReadableDatabase();
+		SQLiteDatabase db = mHelper.getReadableDatabase();
 		Cursor cursor = null;
 
 		UserModel model = null;
@@ -78,7 +78,7 @@ public class UserDao {
 	}
 
 	public UserModel load(String name) {
-		SQLiteDatabase db = helper.getReadableDatabase();
+		SQLiteDatabase db = mHelper.getReadableDatabase();
 		Cursor cursor = null;
 
 		UserModel model = null;
@@ -96,7 +96,7 @@ public class UserDao {
 	}
 
 	public List<UserModel> search(String name) {
-		SQLiteDatabase db = helper.getReadableDatabase();
+		SQLiteDatabase db = mHelper.getReadableDatabase();
 		Cursor cursor = null;
 
 		List<UserModel> userList = null;
@@ -120,7 +120,7 @@ public class UserDao {
 	}
 
 	public List<UserModel> list() {
-		SQLiteDatabase db = helper.getReadableDatabase();
+		SQLiteDatabase db = mHelper.getReadableDatabase();
 		Cursor cursor = null;
 
 		List<UserModel> modelList;
@@ -141,7 +141,7 @@ public class UserDao {
 	}
 
 	public long countAll() {
-		SQLiteDatabase db = helper.getReadableDatabase();
+		SQLiteDatabase db = mHelper.getReadableDatabase();
 		Cursor cursor = null;
 		long count = 0;
 

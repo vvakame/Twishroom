@@ -24,6 +24,12 @@ public class PreferencesActivity extends PreferenceActivity implements
 				key, "");
 	}
 
+	public static boolean isSignAtmark(Context con) {
+		String key = "always_sign_atmark";
+		return PreferenceManager.getDefaultSharedPreferences(con).getBoolean(
+				key, false);
+	}
+
 	@Override
 	public boolean onPreferenceChange(Preference preference, Object newValue) {
 		return true;

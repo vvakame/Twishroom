@@ -24,14 +24,24 @@ import android.widget.ListView;
 import android.widget.Toast;
 import android.widget.AdapterView.OnItemClickListener;
 
-public class TwishroomActivity extends Activity implements TextWatcher,
-		OnItemClickListener {
+public class TwishroomActivity extends Activity implements TextWatcher {
 	// TODO OnItemLongClickListener を後日実装するように
 
 	private static final String ACTION_INTERCEPT = "com.adamrocker.android.simeji.ACTION_INTERCEPT";
 	private static final String REPLACE_KEY = "replace_key";
 
-	/** Called when the activity is first created. */
+	private static final int DIALOG_PROGRESS = 1;
+
+	private boolean mDone = false;
+	private ProgressDialog mProgDialog = null;
+	private Handler mProgHandler = null;
+
+	private FromSimejiImpl mSimejiImpl = new FromSimejiImpl();
+	private OrdinaryImpl mOrdinaryImpl = new OrdinaryImpl();
+
+	private String mEditStr = "";
+	private boolean mFromSimeji = false;
+
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -39,24 +49,16 @@ public class TwishroomActivity extends Activity implements TextWatcher,
 		Intent intent = getIntent();
 		String action = intent.getAction();
 
-		boolean prefixAtmark = false;
-		String pullStr = "";
-		String name = "";
-
 		// Simejiから呼び出された時
 		if (action != null && ACTION_INTERCEPT.equals(action)) {
-			pullStr = intent.getStringExtra(REPLACE_KEY);
-			if (pullStr != null && !pullStr.equals("")
-					&& pullStr.charAt(0) == '@') {
-				prefixAtmark = true;
-			}
-			UserModel user = detectUser(pullStr);
+			mEditStr = intent.getStringExtra(REPLACE_KEY);
+			mFromSimeji = true;
+
+			UserModel user = detectUser(mEditStr);
 
 			if (user != null) {
-				name = user.getScreenName();
-				if (prefixAtmark) {
-					name = "@" + name;
-				}
+				String name = user.getScreenName();
+				name = isPrefixAtmark(mEditStr) ? addAtmark(name) : name;
 
 				// TODO アクティビティ非表示のまま返すとsimejiが再度アクティブになるまで返した文字列が入力されない。
 				pushToSimeji(name);
@@ -64,36 +66,88 @@ public class TwishroomActivity extends Activity implements TextWatcher,
 			}
 		}
 
-		// Simeji以外から呼出されたか、データがないとき
-		UserDao dao = new UserDao(this);
-		long count = dao.countAll();
+		// DBからデータ展開
+		long count = new UserDao(this).countAll();
 		if (count != 0) {
 			setContentView(R.layout.main);
 
 			// EditText周りの処理
 			EditText eText = (EditText) findViewById(R.id.editName);
 			eText.addTextChangedListener(this);
-			eText.setText(pullStr);
+			eText.setText(mEditStr);
 
 			// ListView周りの処理
-			name = prefixAtmark ? pullStr.substring(1) : pullStr;
-			List<UserModel> userList = dao.search(name);
-			ArrayAdapter<UserModel> userAdapter = new TwitterAdapter(this,
-					R.layout.view_for_list, userList);
+			refreshListView(mEditStr);
 			ListView listView = (ListView) findViewById(R.id.userList);
-			listView.setAdapter(userAdapter);
-			// TODO simejiからの呼び出しじゃない場合は挙動を変えるべき
-			listView.setOnItemClickListener(this);
+
+			// Simejiからの呼び出しじゃない場合は押しても挙動無し
+			if (mFromSimeji) {
+				listView.setOnItemClickListener(mSimejiImpl);
+			} else {
+				listView.setOnItemClickListener(mOrdinaryImpl);
+			}
 		} else {
 			setContentView(R.layout.main_data_none);
 		}
 	}
 
+	private boolean isPrefixAtmark(String str) {
+		boolean ret = false;
+		if (str != null && !str.equals("") && str.charAt(0) == '@') {
+			ret = true;
+		}
+		return ret;
+	}
+
+	private String addAtmark(String str) {
+		if (isPrefixAtmark(str)) {
+			return str;
+		} else {
+			return "@" + str;
+		}
+	}
+
+	private String removeAtmark(String str) {
+		if (isPrefixAtmark(str)) {
+			return str.substring(1);
+		} else {
+			return str;
+		}
+	}
+
 	private void pushToSimeji(String result) {
+		result = PreferencesActivity.isSignAtmark(this) ? addAtmark(result)
+				: result;
+
 		Intent data = new Intent();
 		data.putExtra(REPLACE_KEY, result);
 		setResult(RESULT_OK, data);
 		finish();
+	}
+
+	private void refreshListView(String partOfScreenName) {
+		String name = removeAtmark(partOfScreenName);
+
+		UserDao dao = new UserDao(this);
+
+		List<UserModel> userList = dao.search(name);
+		ArrayAdapter<UserModel> userAdapter = new TwitterAdapter(this,
+				R.layout.view_for_list, userList);
+		ListView listView = (ListView) findViewById(R.id.userList);
+		listView.setAdapter(userAdapter);
+	}
+
+	private UserModel detectUser(String name) {
+		String strippedName = removeAtmark(name);
+
+		UserDao dao = new UserDao(this);
+		List<UserModel> userList = dao.search(strippedName);
+
+		if (userList.size() == 1) {
+			return userList.get(0);
+		} else {
+			return null;
+		}
 	}
 
 	@Override
@@ -131,38 +185,37 @@ public class TwishroomActivity extends Activity implements TextWatcher,
 		return ret;
 	}
 
-	private boolean done = false;
-	private ProgressDialog progDialog = null;
-	private Handler progHandler = null;
-	private static final int DIALOG_PROGRESS = 1;
-
 	private void refreshFriendsStatus() {
 		// Handlerの準備
-		done = false;
-		progHandler = new Handler() {
+		mDone = false;
+		mProgHandler = new Handler() {
 			@Override
 			public void handleMessage(Message msg) {
 				super.handleMessage(msg);
-				if (done) {
+				if (mDone) {
 					dismissDialog(DIALOG_PROGRESS);
 					EditText eText = (EditText) findViewById(R.id.editName);
 					if (eText == null) {
 						setContentView(R.layout.main);
 						eText = (EditText) findViewById(R.id.editName);
-						eText.addTextChangedListener(TwishroomActivity.this);
 						ListView listView = (ListView) findViewById(R.id.userList);
-						listView.setOnItemClickListener(TwishroomActivity.this);
+						eText.setText(mEditStr);
+						eText.addTextChangedListener(TwishroomActivity.this);
+						if (mFromSimeji) {
+							listView.setOnItemClickListener(mSimejiImpl);
+						} else {
+							listView.setOnItemClickListener(mOrdinaryImpl);
+						}
 					}
-					String origStr = eText.getText().toString();
-					refreshListView(origStr);
+					refreshListView(mEditStr);
 				} else {
-					progHandler.sendEmptyMessageDelayed(0, 100);
+					mProgHandler.sendEmptyMessageDelayed(0, 100);
 				}
 			}
 		};
 
 		showDialog(DIALOG_PROGRESS);
-		progHandler.sendEmptyMessage(0);
+		mProgHandler.sendEmptyMessage(0);
 		new Thread() {
 			@Override
 			public void run() {
@@ -182,12 +235,12 @@ public class TwishroomActivity extends Activity implements TextWatcher,
 					} catch (IOException e) {
 						// TODO 例外処理をかなり気合い入れてやるべき
 						e.printStackTrace();
-						done = true;
+						mDone = true;
 						return;
 					} catch (TwitterException e) {
 						// TODO 例外処理をかなり気合い入れてやるべき
 						e.printStackTrace();
-						done = true;
+						mDone = true;
 						return;
 					}
 					List<UserModel> list = res.getUserList();
@@ -201,7 +254,7 @@ public class TwishroomActivity extends Activity implements TextWatcher,
 					}
 				}
 
-				done = true;
+				mDone = true;
 			}
 		}.start();
 	}
@@ -210,13 +263,13 @@ public class TwishroomActivity extends Activity implements TextWatcher,
 	protected Dialog onCreateDialog(int id) {
 		switch (id) {
 		case DIALOG_PROGRESS:
-			progDialog = new ProgressDialog(this);
-			progDialog.setTitle(getString(R.string.now_get_friends));
-			progDialog.setMessage(getString(R.string.wait_a_moment));
-			progDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-			progDialog.setCancelable(false);
+			mProgDialog = new ProgressDialog(this);
+			mProgDialog.setTitle(getString(R.string.now_get_friends));
+			mProgDialog.setMessage(getString(R.string.wait_a_moment));
+			mProgDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+			mProgDialog.setCancelable(false);
 
-			return progDialog;
+			return mProgDialog;
 		default:
 			break;
 		}
@@ -226,25 +279,6 @@ public class TwishroomActivity extends Activity implements TextWatcher,
 	@Override
 	protected void onPrepareDialog(int id, Dialog dialog) {
 		super.onPrepareDialog(id, dialog);
-	}
-
-	private UserModel detectUser(String name) {
-		if (name == null || name.equals("")) {
-			return null;
-		}
-
-		// @ が先頭につけられていることを考慮する。
-		boolean atmarkFirst = name.charAt(0) == '@' ? true : false;
-		String strippedName = atmarkFirst ? name.substring(1) : name;
-
-		UserDao dao = new UserDao(this);
-		List<UserModel> userList = dao.search(strippedName);
-
-		if (userList.size() == 1) {
-			return userList.get(0);
-		} else {
-			return null;
-		}
 	}
 
 	@Override
@@ -258,41 +292,34 @@ public class TwishroomActivity extends Activity implements TextWatcher,
 
 	@Override
 	public void onTextChanged(CharSequence s, int start, int before, int count) {
-		refreshListView(s.toString());
-	}
-
-	private void refreshListView(String origStr) {
-		boolean prefixAtmark = false;
-		if (origStr != null && !origStr.equals("") && origStr.charAt(0) == '@') {
-			prefixAtmark = true;
-		}
-		String name = prefixAtmark ? origStr.substring(1) : origStr;
-
+		mEditStr = s.toString();
 		// TODO 入力ディレイが1秒あるまで再検索しない... とかしたほうがいいかも？使ってみて決める
-
-		UserDao dao = new UserDao(this);
-
-		List<UserModel> userList = dao.search(name);
-		ArrayAdapter<UserModel> userAdapter = new TwitterAdapter(this,
-				R.layout.view_for_list, userList);
-		((ListView) findViewById(R.id.userList)).setAdapter(userAdapter);
+		refreshListView(mEditStr);
 	}
 
-	@Override
-	public void onItemClick(AdapterView<?> arg0, View arg1, int arg2, long arg3) {
-		TwitterAdapter adap = (TwitterAdapter) arg0.getAdapter();
-		UserModel model = adap.getItem(arg2);
-		EditText eText = (EditText) findViewById(R.id.editName);
+	class FromSimejiImpl implements OnItemClickListener {
+		@Override
+		public void onItemClick(AdapterView<?> arg0, View arg1, int arg2,
+				long arg3) {
+			TwitterAdapter adap = (TwitterAdapter) arg0.getAdapter();
+			UserModel model = adap.getItem(arg2);
+			EditText eText = (EditText) findViewById(R.id.editName);
 
-		String origStr = eText.getText().toString();
-		boolean prefixAtmark = false;
-		if (origStr != null && !origStr.equals("") && origStr.charAt(0) == '@') {
-			prefixAtmark = true;
+			String origStr = eText.getText().toString();
+
+			String name = model.getScreenName();
+			mEditStr = isPrefixAtmark(origStr) ? addAtmark(name) : name;
+
+			pushToSimeji(mEditStr);
 		}
+	}
 
-		String name = model.getScreenName();
-		name = prefixAtmark ? "@" + name : name;
-
-		pushToSimeji(name);
+	class OrdinaryImpl implements OnItemClickListener {
+		@Override
+		public void onItemClick(AdapterView<?> arg0, View arg1, int arg2,
+				long arg3) {
+			Toast.makeText(TwishroomActivity.this,
+					R.string.not_called_by_simeji, Toast.LENGTH_SHORT).show();
+		}
 	}
 }

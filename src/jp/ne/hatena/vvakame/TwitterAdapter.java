@@ -10,12 +10,12 @@ import android.widget.TextView;
 
 public class TwitterAdapter extends ArrayAdapter<UserModel> {
 
-	private List<UserModel> userList = null;
+	private List<UserModel> mUserList = null;
 
 	public TwitterAdapter(Context context, int textViewResourceId,
 			List<UserModel> objects) {
 		super(context, textViewResourceId, objects);
-		userList = objects;
+		mUserList = objects;
 	}
 
 	@Override
@@ -23,7 +23,7 @@ public class TwitterAdapter extends ArrayAdapter<UserModel> {
 		View view = super.getView(position, convertView, parent);
 		if (view instanceof TextView) {
 			TextView tView = (TextView) view;
-			tView.setText(userList.get(position).getScreenName());
+			tView.setText(mUserList.get(position).getScreenName());
 		}
 		return view;
 	}

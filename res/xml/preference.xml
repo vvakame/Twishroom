@@ -4,4 +4,6 @@
 			android:title="@string/twitter_id"></EditTextPreference>
 		
 	</PreferenceCategory>
+<PreferenceCategory android:title="@string/twishroom_preference"><CheckBoxPreference android:key="always_sign_atmark" android:title="@string/always_sign_atmark"></CheckBoxPreference>
+</PreferenceCategory>
 </PreferenceScreen>
