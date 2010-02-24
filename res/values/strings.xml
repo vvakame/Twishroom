@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="always_sign_atmark">常に"@"を付けて返す。</string>
+	<string name="always_sign_atmark">常に"@"を付けて返す</string>
 	<string name="twishroom_preference">Twishroomに関する設定</string>
 	<string name="edit_user_hint">絞り込みを行う。</string>
 	<string name="app_name">Twishroom</string>
 	<string name="hello">Menuキーを押して最新化してくださいな。</string>
-
 	<string name="refresh_friends">フォロり最新化</string>
 	<string name="preferences">設定</string>
 	<string name="twitter_preferences">Twitterに関する設定</string>
@@ -13,5 +12,6 @@
 	<string name="now_get_friends">フォロり最新化中</string>
 	<string name="wait_a_moment">ちょっと待ってね...</string>
 	<string name="announce_first_step">Menu→設定 から、TwitterIDを入力してください。</string>
-<string name="not_called_by_simeji">Simejiからの呼び出しではありません。</string>
+	<string name="not_called_by_simeji">Simejiからの呼び出しではありません。</string>
+	<string name="add_whitespace">末尾に空白を付けて返す</string>
 </resources>

@@ -2,8 +2,11 @@
 	<PreferenceCategory android:title="@string/twitter_preferences">
 		<EditTextPreference android:key="twitter_id"
 			android:title="@string/twitter_id"></EditTextPreference>
-		
 	</PreferenceCategory>
-<PreferenceCategory android:title="@string/twishroom_preference"><CheckBoxPreference android:key="always_sign_atmark" android:title="@string/always_sign_atmark"></CheckBoxPreference>
-</PreferenceCategory>
+	<PreferenceCategory android:title="@string/twishroom_preference">
+		<CheckBoxPreference android:key="always_sign_atmark"
+			android:title="@string/always_sign_atmark"></CheckBoxPreference>
+		<CheckBoxPreference android:title="@string/add_whitespace"
+			android:key="add_whitespace"></CheckBoxPreference>
+	</PreferenceCategory>
 </PreferenceScreen>

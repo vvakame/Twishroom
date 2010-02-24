@@ -11,7 +11,8 @@ public final class R {
     public static final class attr {
     }
     public static final class drawable {
-        public static final int icon=0x7f020000;
+        public static final int at_yamaden_presents=0x7f020000;
+        public static final int at_yamaden_presents_original=0x7f020001;
     }
     public static final class id {
         public static final int editName=0x7f070000;
@@ -28,6 +29,7 @@ public final class R {
         public static final int main=0x7f060000;
     }
     public static final class string {
+        public static final int add_whitespace=0x7f05000d;
         public static final int always_sign_atmark=0x7f050000;
         public static final int announce_first_step=0x7f05000b;
         public static final int app_name=0x7f050003;

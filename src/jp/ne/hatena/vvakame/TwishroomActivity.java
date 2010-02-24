@@ -118,6 +118,8 @@ public class TwishroomActivity extends Activity implements TextWatcher {
 	private void pushToSimeji(String result) {
 		result = PreferencesActivity.isSignAtmark(this) ? addAtmark(result)
 				: result;
+		result = PreferencesActivity.isAddWhitespace(this) ? result + " "
+				: result;
 
 		Intent data = new Intent();
 		data.putExtra(REPLACE_KEY, result);

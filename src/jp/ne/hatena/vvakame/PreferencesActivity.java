@@ -30,6 +30,12 @@ public class PreferencesActivity extends PreferenceActivity implements
 				key, false);
 	}
 
+	public static boolean isAddWhitespace(Context con) {
+		String key = "add_whitespace";
+		return PreferenceManager.getDefaultSharedPreferences(con).getBoolean(
+				key, false);
+	}
+
 	@Override
 	public boolean onPreferenceChange(Preference preference, Object newValue) {
 		return true;
