@@ -15,7 +15,7 @@ public class PreferencesActivity extends PreferenceActivity implements
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		addPreferencesFromResource(R.xml.preference);
+		addPreferencesFromResource(R.layout.preferences);
 	}
 
 	public static String getTwitterId(Context con) {

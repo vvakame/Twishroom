@@ -5,8 +5,8 @@
 	</PreferenceCategory>
 	<PreferenceCategory android:title="@string/twishroom_preference">
 		<CheckBoxPreference android:key="always_sign_atmark"
-			android:title="@string/always_sign_atmark"></CheckBoxPreference>
+			android:title="@string/always_sign_atmark" android:defaultValue="true"></CheckBoxPreference>
 		<CheckBoxPreference android:title="@string/add_whitespace"
-			android:key="add_whitespace"></CheckBoxPreference>
+			android:key="add_whitespace" android:defaultValue="true"></CheckBoxPreference>
 	</PreferenceCategory>
 </PreferenceScreen>
