@@ -308,9 +308,6 @@ public class TwishroomActivity extends Activity implements TextWatcher {
 		case DIALOG_CONTENTS:
 			AlertDialog.Builder altBuilder = new AlertDialog.Builder(this);
 
-			String title = "test";
-			altBuilder.setTitle(title);
-
 			LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 			View layout = inflater.inflate(R.layout.long_click_dialog, null);
 
