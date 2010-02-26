@@ -259,7 +259,16 @@ public class TwishroomActivity extends Activity implements TextWatcher {
 				long count = 0;
 
 				UserDao dao = new UserDao(TwishroomActivity.this);
+				// TODO save始める直前でもよい(Twitterのエラー)
 				dao.truncate();
+
+				ListView userListView = (ListView) findViewById(R.id.user_list);
+				List<UserModel> oldList = null;
+				if (userListView != null) {
+					TwitterAdapter currentUserAdapter = (TwitterAdapter) userListView
+							.getAdapter();
+					oldList = currentUserAdapter.getUserList();
+				}
 
 				long cur = TwitterAgent.INITIAL_CURSOL;
 				while (cur != TwitterAgent.END_CURSOL) {
@@ -285,6 +294,16 @@ public class TwishroomActivity extends Activity implements TextWatcher {
 					count += list.size();
 
 					for (UserModel model : list) {
+						if (oldList != null) {
+							for (UserModel old : oldList) {
+								if (old.getScreenName().equals(
+										model.getScreenName())) {
+									old.updateFrom(model);
+									model = old;
+									break;
+								}
+							}
+						}
 						dao.save(model);
 					}
 				}
@@ -319,7 +338,13 @@ public class TwishroomActivity extends Activity implements TextWatcher {
 					if (mCurrentUser == null) {
 						throw new IllegalStateException();
 					}
-					pushToSimeji(mCurrentUser.getScreenName(), true);
+					if (mFromSimeji) {
+						pushToSimeji(mCurrentUser.getScreenName(), true);
+					} else {
+						dismissDialog(DIALOG_CONTENTS);
+						Toast.makeText(TwishroomActivity.this, mCurrentUser
+								.getScreenName(), Toast.LENGTH_SHORT);
+					}
 				}
 			});
 
@@ -330,7 +355,13 @@ public class TwishroomActivity extends Activity implements TextWatcher {
 					if (mCurrentUser == null) {
 						throw new IllegalStateException();
 					}
-					pushToSimeji(mCurrentUser.getName(), false);
+					if (mFromSimeji) {
+						pushToSimeji(mCurrentUser.getName(), false);
+					} else {
+						dismissDialog(DIALOG_CONTENTS);
+						Toast.makeText(TwishroomActivity.this, mCurrentUser
+								.getName(), Toast.LENGTH_SHORT);
+					}
 				}
 			});
 
@@ -342,8 +373,11 @@ public class TwishroomActivity extends Activity implements TextWatcher {
 					if (mCurrentUser == null) {
 						throw new IllegalStateException();
 					}
-					// TODO まじめに実装する
-					pushToSimeji("test", false);
+					mCurrentUser.toggleFavorite();
+					UserDao dao = new UserDao(TwishroomActivity.this);
+					dao.save(mCurrentUser);
+					dismissDialog(DIALOG_CONTENTS);
+					refreshListView(mEditStr);
 				}
 			});
 
@@ -409,7 +443,9 @@ public class TwishroomActivity extends Activity implements TextWatcher {
 		@Override
 		public boolean onItemLongClick(AdapterView<?> parent, View view,
 				int position, long id) {
-			notCalledBySimejiToast();
+			TwitterAdapter adap = (TwitterAdapter) parent.getAdapter();
+			mCurrentUser = adap.getItem(position);
+			showDialog(DIALOG_CONTENTS);
 			return true;
 		}
 

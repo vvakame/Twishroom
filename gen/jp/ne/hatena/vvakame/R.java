@@ -10,18 +10,22 @@ package jp.ne.hatena.vvakame;
 public final class R {
     public static final class attr {
     }
+    public static final class color {
+        public static final int favorite=0x7f040001;
+        public static final int normal=0x7f040000;
+    }
     public static final class drawable {
         public static final int at_yamaden_presents=0x7f020000;
         public static final int at_yamaden_presents_original=0x7f020001;
     }
     public static final class id {
-        public static final int edit_name=0x7f060003;
-        public static final int favorite=0x7f060002;
-        public static final int name=0x7f060001;
-        public static final int preferences=0x7f060006;
-        public static final int refresh_friends=0x7f060005;
-        public static final int screen_name=0x7f060000;
-        public static final int user_list=0x7f060004;
+        public static final int edit_name=0x7f070003;
+        public static final int favorite=0x7f070002;
+        public static final int name=0x7f070001;
+        public static final int preferences=0x7f070006;
+        public static final int refresh_friends=0x7f070005;
+        public static final int screen_name=0x7f070000;
+        public static final int user_list=0x7f070004;
     }
     public static final class layout {
         public static final int long_click_dialog=0x7f030000;
@@ -31,25 +35,25 @@ public final class R {
         public static final int view_for_list=0x7f030004;
     }
     public static final class menu {
-        public static final int main=0x7f050000;
+        public static final int main=0x7f060000;
     }
     public static final class string {
-        public static final int add_whitespace=0x7f040009;
-        public static final int always_sign_atmark=0x7f040008;
-        public static final int announce_first_step=0x7f04000c;
-        public static final int app_name=0x7f040000;
-        public static final int edit_user_hint=0x7f04000d;
-        public static final int hello=0x7f040001;
-        public static final int not_called_by_simeji=0x7f040010;
-        public static final int now_get_friends=0x7f04000e;
-        public static final int preferences=0x7f04000b;
-        public static final int refresh_friends=0x7f04000a;
-        public static final int return_name=0x7f040003;
-        public static final int return_screen_name=0x7f040002;
-        public static final int toggle_favorite=0x7f040004;
-        public static final int twishroom_preference=0x7f040007;
-        public static final int twitter_id=0x7f040006;
-        public static final int twitter_preferences=0x7f040005;
-        public static final int wait_a_moment=0x7f04000f;
+        public static final int add_whitespace=0x7f050009;
+        public static final int always_sign_atmark=0x7f050008;
+        public static final int announce_first_step=0x7f05000c;
+        public static final int app_name=0x7f050000;
+        public static final int edit_user_hint=0x7f05000d;
+        public static final int hello=0x7f050001;
+        public static final int not_called_by_simeji=0x7f050010;
+        public static final int now_get_friends=0x7f05000e;
+        public static final int preferences=0x7f05000b;
+        public static final int refresh_friends=0x7f05000a;
+        public static final int return_name=0x7f050003;
+        public static final int return_screen_name=0x7f050002;
+        public static final int toggle_favorite=0x7f050004;
+        public static final int twishroom_preference=0x7f050007;
+        public static final int twitter_id=0x7f050006;
+        public static final int twitter_preferences=0x7f050005;
+        public static final int wait_a_moment=0x7f05000f;
     }
 }

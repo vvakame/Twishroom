@@ -10,6 +10,9 @@ import android.database.sqlite.SQLiteDatabase;
 
 public class UserDao {
 
+	private static final String ORDER_BY = UserModel.COLUMN_FAVORITE
+			+ " desc, upper(" + UserModel.COLUMN_SCREEN_NAME + ")";
+
 	private DBHelper mHelper = null;
 
 	public UserDao(Context con) {
@@ -23,6 +26,7 @@ public class UserDao {
 			ContentValues values = new ContentValues();
 			values.put(UserModel.COLUMN_SCREEN_NAME, model.getScreenName());
 			values.put(UserModel.COLUMN_NAME, model.getName());
+			values.put(UserModel.COLUMN_FAVORITE, model.getFavorite());
 
 			Long rowId = model.getRowId();
 			// IDがnullの場合はinsert
@@ -103,8 +107,7 @@ public class UserDao {
 		try {
 			cursor = db.query(UserModel.TABLE_NAME, null,
 					UserModel.COLUMN_SCREEN_NAME + " like ? || '%'",
-					new String[] { name }, null, null, "upper("
-							+ UserModel.COLUMN_SCREEN_NAME + ")");
+					new String[] { name }, null, null, ORDER_BY);
 
 			userList = new ArrayList<UserModel>();
 			cursor.moveToFirst();
@@ -126,7 +129,7 @@ public class UserDao {
 		List<UserModel> modelList;
 		try {
 			cursor = db.query(UserModel.TABLE_NAME, null, null, null, null,
-					null, "upper(" + UserModel.COLUMN_SCREEN_NAME + ")");
+					null, ORDER_BY);
 			modelList = new ArrayList<UserModel>();
 			cursor.moveToFirst();
 			while (!cursor.isAfterLast()) {
@@ -160,9 +163,15 @@ public class UserDao {
 	private UserModel getUserModel(Cursor cursor) {
 		UserModel model = new UserModel();
 
-		model.setRowId(cursor.getLong(0));
-		model.setScreenName(cursor.getString(1));
-		model.setName(cursor.getString(2));
+		int rowId = cursor.getColumnIndex(UserModel.COLUMN_ID);
+		int screenName = cursor.getColumnIndex(UserModel.COLUMN_SCREEN_NAME);
+		int name = cursor.getColumnIndex(UserModel.COLUMN_NAME);
+		int favorite = cursor.getColumnIndex(UserModel.COLUMN_FAVORITE);
+
+		model.setRowId(cursor.getLong(rowId));
+		model.setScreenName(cursor.getString(screenName));
+		model.setName(cursor.getString(name));
+		model.setFavorite(cursor.getString(favorite));
 
 		return model;
 	}

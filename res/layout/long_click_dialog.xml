@@ -1,16 +1,17 @@
 <LinearLayout android:layout_width="fill_parent"
 	android:layout_height="fill_parent" xmlns:android="http://schemas.android.com/apk/res/android"
-	android:orientation="vertical" android:padding="17dip" android:paddingBottom="7dip" android:paddingTop="7dip">
+	android:orientation="vertical" android:padding="17dip"
+	android:paddingBottom="7dip" android:paddingTop="7dip">
 	<TextView android:layout_width="wrap_content"
 		android:layout_height="wrap_content" android:id="@+id/screen_name"
 		android:text="@string/return_screen_name" android:padding="5dip"
-		android:textSize="20dip"></TextView>
+		android:textSize="20dip" android:textColor="@color/normal"></TextView>
 	<TextView android:layout_width="wrap_content"
 		android:layout_height="wrap_content" android:id="@+id/name"
 		android:text="@string/return_name" android:padding="5dip"
-		android:textSize="20dip"></TextView>
+		android:textSize="20dip" android:textColor="@color/normal"></TextView>
 	<TextView android:layout_width="wrap_content"
 		android:layout_height="wrap_content" android:id="@+id/favorite"
 		android:text="@string/toggle_favorite" android:padding="5dip"
-		android:textSize="20dip"></TextView>
+		android:textSize="20dip" android:textColor="@color/favorite"></TextView>
 </LinearLayout>

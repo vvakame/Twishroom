@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -71,7 +72,8 @@ public class TwitterAgent {
 			throw new RuntimeException(e);
 		}
 
-		InputStream isr = url.openConnection().getInputStream();
+		URLConnection connect = url.openConnection();
+		InputStream isr = connect.getInputStream();
 
 		XmlPullParser xmlParser = Xml.newPullParser();
 		List<UserModel> friendsList = null;
