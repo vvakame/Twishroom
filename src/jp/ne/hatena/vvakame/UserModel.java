@@ -10,6 +10,8 @@ public class UserModel implements Serializable {
 	public static final String COLUMN_ID = "_id";
 	public static final String COLUMN_NAME = "name";
 	public static final String COLUMN_SCREEN_NAME = "screen_name";
+	public static final String COLUMN_FRIENDS_COUNT = "friends_count";
+
 	public static final String COLUMN_FAVORITE = "favorite";
 
 	public static final String FAVORITE_ON = "on";
@@ -18,6 +20,8 @@ public class UserModel implements Serializable {
 	private Long rowId = null;
 	private String name = null;
 	private String screenName = null;
+	private Long friendsCount = null;
+
 	private String favorite = null;
 
 	public Long getRowId() {
@@ -42,6 +46,14 @@ public class UserModel implements Serializable {
 
 	public void setScreenName(String screenName) {
 		this.screenName = screenName;
+	}
+
+	public Long getFriendsCount() {
+		return friendsCount;
+	}
+
+	public void setFriendsCount(Long friendsCount) {
+		this.friendsCount = friendsCount;
 	}
 
 	public String getFavorite() {

@@ -20,7 +20,8 @@
 	<string name="edit_user_hint">絞り込みを行う。</string>
 	<string name="now_get_friends">フォロり最新化中</string>
 	<string name="wait_a_moment">ちょっと待ってね...</string>
+	<string name="progress_twitter_fetch">%d / %d 処理中なう。</string>
 	<string name="not_called_by_simeji">Simejiからの呼び出しではありません。</string>
-<string name="favorite_on_message">%sさんをお気に入りにしました。</string>
-<string name="favorite_off_message">%sさんをお気に入りから外しました。降格！</string>
+	<string name="favorite_on_message">%sさんをお気に入りにしました。</string>
+	<string name="favorite_off_message">%sさんをお気に入りから外しました。降格！</string>
 </resources>

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 	<item android:numericShortcut="1" android:icon="@android:drawable/ic_menu_rotate"
-		android:id="@+id/refresh_friends" android:title="@string/refresh_friends"/>
+		android:id="@+id/refresh_friends" android:title="@string/refresh_friends" />
 	<item android:numericShortcut="2"
 		android:icon="@android:drawable/ic_menu_preferences" android:id="@+id/preferences"
 		android:title="@string/preferences" />

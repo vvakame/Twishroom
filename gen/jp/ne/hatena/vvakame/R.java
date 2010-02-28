@@ -43,12 +43,13 @@ public final class R {
         public static final int announce_first_step=0x7f05000c;
         public static final int app_name=0x7f050000;
         public static final int edit_user_hint=0x7f05000d;
-        public static final int favorite_off_message=0x7f050012;
-        public static final int favorite_on_message=0x7f050011;
+        public static final int favorite_off_message=0x7f050013;
+        public static final int favorite_on_message=0x7f050012;
         public static final int hello=0x7f050001;
-        public static final int not_called_by_simeji=0x7f050010;
+        public static final int not_called_by_simeji=0x7f050011;
         public static final int now_get_friends=0x7f05000e;
         public static final int preferences=0x7f05000b;
+        public static final int progress_twitter_fetch=0x7f050010;
         public static final int refresh_friends=0x7f05000a;
         public static final int return_name=0x7f050003;
         public static final int return_screen_name=0x7f050002;

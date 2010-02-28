@@ -3,7 +3,8 @@
 	android:orientation="vertical" android:layout_width="fill_parent"
 	android:layout_height="fill_parent">
 	<EditText android:layout_height="wrap_content"
-		android:layout_width="fill_parent" android:hint="@string/edit_user_hint" android:id="@+id/edit_name" android:inputType="text"></EditText>
+		android:layout_width="fill_parent" android:hint="@string/edit_user_hint"
+		android:id="@+id/edit_name" android:inputType="text"></EditText>
 	<ListView android:layout_height="wrap_content"
 		android:layout_width="fill_parent" android:padding="10dip" android:id="@+id/user_list"></ListView>
 </LinearLayout>

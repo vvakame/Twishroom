@@ -34,7 +34,8 @@ public class TwishroomActivity extends Activity implements TextWatcher {
 	private static final int DIALOG_PROGRESS = 1;
 
 	private static final int MESSAGE_REFRESH_FOLLOWER = 1;
-	private static final int MESSAGE_ERROR_HANDLING = 2;
+	private static final int MESSAGE_UPDATE_PROGRESS = 2;
+	private static final int MESSAGE_ERROR_HANDLING = 3;
 
 	private boolean mDone = false;
 	private ProgressDialog mProgDialog = null;
@@ -134,6 +135,10 @@ public class TwishroomActivity extends Activity implements TextWatcher {
 								MESSAGE_REFRESH_FOLLOWER, 100);
 					}
 
+					break;
+
+				case MESSAGE_UPDATE_PROGRESS:
+					mProgDialog.setMessage(msg.obj.toString());
 					break;
 
 				case MESSAGE_ERROR_HANDLING:
@@ -272,50 +277,64 @@ public class TwishroomActivity extends Activity implements TextWatcher {
 					oldMap = currentUserAdapter.getUserMap();
 				}
 
-				long cur = TwitterAgent.INITIAL_CURSOL;
-				while (cur != TwitterAgent.END_CURSOL) {
-					TwitterResponse res = null;
-					try {
-						res = agent.getFriendsStatus(TwishroomActivity.this,
-								cur);
-					} catch (IOException e) {
-						// TODO もうちょっとユーザフレンドリなメッセージを出させてもよい
-						String msgStr = e.getClass().getSimpleName() + ": "
-								+ e.getMessage();
-						Message msg = Message.obtain(mProgHandler,
-								MESSAGE_ERROR_HANDLING, msgStr);
-						msg.sendToTarget();
+				try {
+					String screenName = PreferencesActivity
+							.getTwitterId(TwishroomActivity.this);
 
-						mDone = true;
-						return;
-					} catch (TwitterException e) {
-						// TODO もうちょっとユーザフレンドリなメッセージを出させてもよい
-						Message msg = Message.obtain(mProgHandler,
-								MESSAGE_ERROR_HANDLING, e.getMessage());
-						msg.sendToTarget();
+					UserModel targetModel = agent.getShowUser(screenName);
 
-						mDone = true;
-						return;
-					}
-					List<UserModel> list = res.getUserList();
-					cur = res.getNextCursor();
+					constructProgressMsg(count, targetModel).sendToTarget();
 
-					// TODO ProgressDialogの状態を更新し、進捗がわかるようにするべき
-					count += list.size();
+					long cur = TwitterAgent.INITIAL_CURSOL;
+					while (cur != TwitterAgent.END_CURSOL) {
+						TwitterResponse res = null;
+						res = agent.getFriendsStatus(screenName, cur);
+						List<UserModel> list = res.getUserList();
+						cur = res.getNextCursor();
 
-					for (UserModel model : list) {
-						if (oldMap != null
-								&& oldMap.containsKey(model.getScreenName())) {
-							UserModel oldModel = oldMap.get(model
-									.getScreenName());
-							oldModel.updateFrom(model);
-							model = oldModel;
+						count += list.size();
+
+						for (UserModel model : list) {
+							if (oldMap != null
+									&& oldMap
+											.containsKey(model.getScreenName())) {
+								UserModel oldModel = oldMap.get(model
+										.getScreenName());
+								oldModel.updateFrom(model);
+								model = oldModel;
+							}
+							dao.save(model);
 						}
-						dao.save(model);
+
+						constructProgressMsg(count, targetModel).sendToTarget();
 					}
+
+				} catch (IOException e) {
+					// TODO もうちょっとユーザフレンドリなメッセージを出させてもよい
+					String msgStr = e.getClass().getSimpleName() + ": "
+							+ e.getMessage();
+					Message msg = Message.obtain(mProgHandler,
+							MESSAGE_ERROR_HANDLING, msgStr);
+					msg.sendToTarget();
+				} catch (TwitterException e) {
+					// TODO もうちょっとユーザフレンドリなメッセージを出させてもよい
+					Message msg = Message.obtain(mProgHandler,
+							MESSAGE_ERROR_HANDLING, e.getMessage());
+					msg.sendToTarget();
 				}
 
 				mDone = true;
+			}
+
+			private Message constructProgressMsg(long count,
+					UserModel targetModel) {
+				Message msg = Message.obtain(mProgHandler);
+				msg.what = MESSAGE_UPDATE_PROGRESS;
+				String msgTemplate = getString(R.string.progress_twitter_fetch);
+				msg.obj = String.format(msgTemplate, count, targetModel
+						.getFriendsCount());
+
+				return msg;
 			}
 		}.start();
 	}
