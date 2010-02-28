@@ -2,30 +2,26 @@ package jp.ne.hatena.vvakame;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 import jp.ne.hatena.vvakame.TwitterAgent.TwitterResponse;
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ListView;
-import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.AdapterView.OnItemLongClickListener;
@@ -36,7 +32,6 @@ public class TwishroomActivity extends Activity implements TextWatcher {
 	private static final String REPLACE_KEY = "replace_key";
 
 	private static final int DIALOG_PROGRESS = 1;
-	private static final int DIALOG_CONTENTS = 2;
 
 	private static final int MESSAGE_REFRESH_FOLLOWER = 1;
 
@@ -81,7 +76,7 @@ public class TwishroomActivity extends Activity implements TextWatcher {
 			mOnClickImpl = tmp;
 			mOnLongClickImple = tmp;
 		} else {
-			OrdinaryImpl tmp = new OrdinaryImpl();
+			NotCalledBySimejiImpl tmp = new NotCalledBySimejiImpl();
 			mOnClickImpl = tmp;
 			mOnLongClickImple = tmp;
 		}
@@ -263,11 +258,11 @@ public class TwishroomActivity extends Activity implements TextWatcher {
 				dao.truncate();
 
 				ListView userListView = (ListView) findViewById(R.id.user_list);
-				List<UserModel> oldList = null;
+				Map<String, UserModel> oldMap = null;
 				if (userListView != null) {
 					TwitterAdapter currentUserAdapter = (TwitterAdapter) userListView
 							.getAdapter();
-					oldList = currentUserAdapter.getUserList();
+					oldMap = currentUserAdapter.getUserMap();
 				}
 
 				long cur = TwitterAgent.INITIAL_CURSOL;
@@ -294,15 +289,12 @@ public class TwishroomActivity extends Activity implements TextWatcher {
 					count += list.size();
 
 					for (UserModel model : list) {
-						if (oldList != null) {
-							for (UserModel old : oldList) {
-								if (old.getScreenName().equals(
-										model.getScreenName())) {
-									old.updateFrom(model);
-									model = old;
-									break;
-								}
-							}
+						if (oldMap != null
+								&& oldMap.containsKey(model.getScreenName())) {
+							UserModel oldModel = oldMap.get(model
+									.getScreenName());
+							oldModel.updateFrom(model);
+							model = oldModel;
 						}
 						dao.save(model);
 					}
@@ -324,66 +316,6 @@ public class TwishroomActivity extends Activity implements TextWatcher {
 			mProgDialog.setCancelable(false);
 
 			return mProgDialog;
-		case DIALOG_CONTENTS:
-			AlertDialog.Builder altBuilder = new AlertDialog.Builder(this);
-
-			LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-			View layout = inflater.inflate(R.layout.long_click_dialog, null);
-
-			TextView screenNameText = (TextView) layout
-					.findViewById(R.id.screen_name);
-			screenNameText.setOnClickListener(new OnClickListener() {
-				@Override
-				public void onClick(View v) {
-					if (mCurrentUser == null) {
-						throw new IllegalStateException();
-					}
-					if (mFromSimeji) {
-						pushToSimeji(mCurrentUser.getScreenName(), true);
-					} else {
-						dismissDialog(DIALOG_CONTENTS);
-						Toast.makeText(TwishroomActivity.this, mCurrentUser
-								.getScreenName(), Toast.LENGTH_SHORT);
-					}
-				}
-			});
-
-			TextView nameText = (TextView) layout.findViewById(R.id.name);
-			nameText.setOnClickListener(new OnClickListener() {
-				@Override
-				public void onClick(View v) {
-					if (mCurrentUser == null) {
-						throw new IllegalStateException();
-					}
-					if (mFromSimeji) {
-						pushToSimeji(mCurrentUser.getName(), false);
-					} else {
-						dismissDialog(DIALOG_CONTENTS);
-						Toast.makeText(TwishroomActivity.this, mCurrentUser
-								.getName(), Toast.LENGTH_SHORT);
-					}
-				}
-			});
-
-			TextView favoriteText = (TextView) layout
-					.findViewById(R.id.favorite);
-			favoriteText.setOnClickListener(new OnClickListener() {
-				@Override
-				public void onClick(View v) {
-					if (mCurrentUser == null) {
-						throw new IllegalStateException();
-					}
-					mCurrentUser.toggleFavorite();
-					UserDao dao = new UserDao(TwishroomActivity.this);
-					dao.save(mCurrentUser);
-					dismissDialog(DIALOG_CONTENTS);
-					refreshListView(mEditStr);
-				}
-			});
-
-			altBuilder.setView(layout);
-
-			return altBuilder.create();
 		default:
 			break;
 		}
@@ -406,8 +338,7 @@ public class TwishroomActivity extends Activity implements TextWatcher {
 		refreshListView(mEditStr);
 	}
 
-	class FromSimejiImpl implements OnItemClickListener,
-			OnItemLongClickListener {
+	class FromSimejiImpl extends UsuallyImpl implements OnItemClickListener {
 		@Override
 		public void onItemClick(AdapterView<?> parent, View view, int position,
 				long id) {
@@ -422,36 +353,43 @@ public class TwishroomActivity extends Activity implements TextWatcher {
 
 			pushToSimeji(mEditStr, true);
 		}
-
-		@Override
-		public boolean onItemLongClick(AdapterView<?> parent, View view,
-				int position, long id) {
-			TwitterAdapter adap = (TwitterAdapter) parent.getAdapter();
-			mCurrentUser = adap.getItem(position);
-			showDialog(DIALOG_CONTENTS);
-			return true;
-		}
 	}
 
-	class OrdinaryImpl implements OnItemClickListener, OnItemLongClickListener {
+	class NotCalledBySimejiImpl extends UsuallyImpl implements
+			OnItemClickListener {
 		@Override
 		public void onItemClick(AdapterView<?> parent, View view, int position,
 				long id) {
-			notCalledBySimejiToast();
+			Toast.makeText(TwishroomActivity.this,
+					R.string.not_called_by_simeji, Toast.LENGTH_SHORT).show();
 		}
+	}
 
+	class UsuallyImpl implements OnItemLongClickListener {
 		@Override
 		public boolean onItemLongClick(AdapterView<?> parent, View view,
 				int position, long id) {
 			TwitterAdapter adap = (TwitterAdapter) parent.getAdapter();
 			mCurrentUser = adap.getItem(position);
-			showDialog(DIALOG_CONTENTS);
-			return true;
-		}
 
-		private void notCalledBySimejiToast() {
-			Toast.makeText(TwishroomActivity.this,
-					R.string.not_called_by_simeji, Toast.LENGTH_SHORT).show();
+			String message = null;
+			if (UserModel.FAVORITE_ON.equals(mCurrentUser.getFavorite())) {
+				message = getString(R.string.favorite_off_message);
+			} else {
+				message = getString(R.string.favorite_on_message);
+			}
+
+			message = String.format(message, mCurrentUser.getScreenName());
+
+			mCurrentUser.toggleFavorite();
+			UserDao dao = new UserDao(TwishroomActivity.this);
+			dao.save(mCurrentUser);
+
+			Toast.makeText(TwishroomActivity.this, message, Toast.LENGTH_LONG)
+					.show();
+			refreshListView(mEditStr);
+
+			return true;
 		}
 	}
 }

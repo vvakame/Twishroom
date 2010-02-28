@@ -1,9 +1,10 @@
 package jp.ne.hatena.vvakame;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import android.content.Context;
-import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,12 +15,18 @@ public class TwitterAdapter extends ArrayAdapter<UserModel> {
 
 	private Context con = null;
 	private List<UserModel> mUserList = null;
+	private Map<String, UserModel> mUserMap = null;
 
 	public TwitterAdapter(Context context, int textViewResourceId,
 			List<UserModel> objects) {
 		super(context, textViewResourceId, objects);
 		con = context;
 		mUserList = objects;
+		mUserMap = new HashMap<String, UserModel>();
+
+		for (UserModel model : mUserList) {
+			mUserMap.put(model.getScreenName(), model);
+		}
 	}
 
 	@Override
@@ -37,9 +44,10 @@ public class TwitterAdapter extends ArrayAdapter<UserModel> {
 			tView.setText(model.getScreenName());
 
 			if (UserModel.FAVORITE_ON.equals(model.getFavorite())) {
-				tView.setTextColor(Color.YELLOW);
+				tView.setTextColor(con.getResources()
+						.getColor(R.color.favorite));
 			} else {
-				tView.setTextColor(Color.WHITE);
+				tView.setTextColor(con.getResources().getColor(R.color.normal));
 			}
 		}
 		return convertView;
@@ -47,5 +55,13 @@ public class TwitterAdapter extends ArrayAdapter<UserModel> {
 
 	public List<UserModel> getUserList() {
 		return mUserList;
+	}
+
+	public Map<String, UserModel> getUserMap() {
+		return mUserMap;
+	}
+
+	public UserModel getUser(String screenName) {
+		return mUserMap.get(screenName);
 	}
 }
