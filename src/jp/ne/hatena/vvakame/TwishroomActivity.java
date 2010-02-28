@@ -34,6 +34,7 @@ public class TwishroomActivity extends Activity implements TextWatcher {
 	private static final int DIALOG_PROGRESS = 1;
 
 	private static final int MESSAGE_REFRESH_FOLLOWER = 1;
+	private static final int MESSAGE_ERROR_HANDLING = 2;
 
 	private boolean mDone = false;
 	private ProgressDialog mProgDialog = null;
@@ -133,6 +134,12 @@ public class TwishroomActivity extends Activity implements TextWatcher {
 								MESSAGE_REFRESH_FOLLOWER, 100);
 					}
 
+					break;
+
+				case MESSAGE_ERROR_HANDLING:
+					String msgStr = msg.obj.toString();
+					Toast.makeText(TwishroomActivity.this, msgStr,
+							Toast.LENGTH_LONG).show();
 					break;
 
 				default:
@@ -272,13 +279,21 @@ public class TwishroomActivity extends Activity implements TextWatcher {
 						res = agent.getFriendsStatus(TwishroomActivity.this,
 								cur);
 					} catch (IOException e) {
-						// TODO 例外処理をかなり気合い入れてやるべき
-						e.printStackTrace();
+						// TODO もうちょっとユーザフレンドリなメッセージを出させてもよい
+						String msgStr = e.getClass().getSimpleName() + ": "
+								+ e.getMessage();
+						Message msg = Message.obtain(mProgHandler,
+								MESSAGE_ERROR_HANDLING, msgStr);
+						msg.sendToTarget();
+
 						mDone = true;
 						return;
 					} catch (TwitterException e) {
-						// TODO 例外処理をかなり気合い入れてやるべき
-						e.printStackTrace();
+						// TODO もうちょっとユーザフレンドリなメッセージを出させてもよい
+						Message msg = Message.obtain(mProgHandler,
+								MESSAGE_ERROR_HANDLING, e.getMessage());
+						msg.sendToTarget();
+
 						mDone = true;
 						return;
 					}
