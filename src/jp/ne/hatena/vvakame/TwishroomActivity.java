@@ -344,16 +344,29 @@ public class TwishroomActivity extends Activity implements TextWatcher {
 		switch (id) {
 		case DIALOG_PROGRESS:
 			mProgDialog = new ProgressDialog(this);
-			mProgDialog.setTitle(getString(R.string.now_get_friends));
-			mProgDialog.setMessage(getString(R.string.wait_a_moment));
-			mProgDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-			mProgDialog.setCancelable(false);
+			onPrepareDialog(id, mProgDialog);
 
 			return mProgDialog;
 		default:
 			break;
 		}
 		return null;
+	}
+
+	@Override
+	protected void onPrepareDialog(int id, Dialog dialog) {
+		switch (id) {
+		case DIALOG_PROGRESS:
+			ProgressDialog progDialog = (ProgressDialog) dialog;
+			progDialog.setTitle(getString(R.string.now_get_friends));
+			progDialog.setMessage(getString(R.string.wait_a_moment));
+			progDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+			progDialog.setCancelable(false);
+
+			break;
+		default:
+			break;
+		}
 	}
 
 	@Override
