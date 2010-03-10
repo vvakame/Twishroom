@@ -1,10 +1,11 @@
-package jp.ne.hatena.vvakame;
+package net.vvakame.twishroom;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
-import jp.ne.hatena.vvakame.TwitterAgent.TwitterResponse;
+import net.vvakame.twishroom.TwitterAgent.TwitterResponse;
+
 import android.app.Activity;
 import android.app.Dialog;
 import android.app.ProgressDialog;

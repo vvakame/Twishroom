@@ -1,4 +1,4 @@
-package jp.ne.hatena.vvakame;
+package net.vvakame.twishroom;
 
 import android.content.Context;
 import android.os.Bundle;

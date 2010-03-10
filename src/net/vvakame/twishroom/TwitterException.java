@@ -1,4 +1,4 @@
-package jp.ne.hatena.vvakame;
+package net.vvakame.twishroom;
 
 /**
  * Twitterとお話中にエラーが発生した場合投げられる例外

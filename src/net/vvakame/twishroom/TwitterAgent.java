@@ -1,4 +1,4 @@
-package jp.ne.hatena.vvakame;
+package net.vvakame.twishroom;
 
 import java.io.IOException;
 import java.io.InputStream;
