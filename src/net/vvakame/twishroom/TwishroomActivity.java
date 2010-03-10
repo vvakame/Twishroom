@@ -1,11 +1,9 @@
 package net.vvakame.twishroom;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
 import net.vvakame.twishroom.TwitterAgent.TwitterResponse;
-
 import android.app.Activity;
 import android.app.Dialog;
 import android.app.ProgressDialog;
@@ -374,17 +372,12 @@ public class TwishroomActivity extends Activity implements TextWatcher {
 						constructProgressMsg(count, targetModel).sendToTarget();
 					}
 
-				} catch (IOException e) {
+				} catch (Exception e) {
 					// TODO もうちょっとユーザフレンドリなメッセージを出させてもよい
 					String msgStr = e.getClass().getSimpleName() + ": "
 							+ e.getMessage();
 					Message msg = Message.obtain(mProgHandler,
 							MESSAGE_ERROR_HANDLING, msgStr);
-					msg.sendToTarget();
-				} catch (TwitterException e) {
-					// TODO もうちょっとユーザフレンドリなメッセージを出させてもよい
-					Message msg = Message.obtain(mProgHandler,
-							MESSAGE_ERROR_HANDLING, e.getMessage());
 					msg.sendToTarget();
 				}
 

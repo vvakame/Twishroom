@@ -1,17 +1,18 @@
 package net.vvakame.twishroom;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.xmlpull.v1.XmlPullParser;
-import org.xmlpull.v1.XmlPullParserException;
-
-import android.util.Xml;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 /**
  * Twitterとお話をします。ごにょごにょ。
@@ -20,8 +21,8 @@ import android.util.Xml;
  */
 public class TwitterAgent {
 
-	/** Twitterから受け取るデータのうち、User部分始まりのタグ */
-	public static final String TAG_USER = "user";
+	/** Twitterから受け取るデータのうち、User部分の固まりの始まりのタグ */
+	public static final String TAG_USERS = "users";
 	/** Twitterから受け取るデータのうち、次のデータのカーソル */
 	public static final String TAG_NEXT_CURSOR = "next_cursor";
 	/** Twitterから受け取るデータのうち、エラーメッセージ */
@@ -40,7 +41,7 @@ public class TwitterAgent {
 	public static final long END_CURSOL = 0;
 
 	/** Twitterから受け取るデータの1回の通信あたりの分量 */
-	private static final int INIT_CAPACITY = 100;
+	private static final int GET_COUNT = 50;
 
 	/**
 	 * ユーザと次のカーソルを一緒に返すためのTuple的なクラス
@@ -81,10 +82,10 @@ public class TwitterAgent {
 	 *            フォロり一覧を取得したいユーザ
 	 * @return フォロり一覧と次のデータへのカーソル
 	 * @throws IOException
-	 * @throws TwitterException
+	 * @throws JSONException
 	 */
 	public TwitterResponse getFriendsStatus(String screenName)
-			throws IOException, TwitterException {
+			throws IOException, JSONException {
 		return getFriendsStatus(screenName, INITIAL_CURSOL);
 	}
 
@@ -95,67 +96,54 @@ public class TwitterAgent {
 	 *            フォロり一覧を取得したいユーザ
 	 * @return フォロり一覧と次のデータへのカーソル
 	 * @throws IOException
-	 * @throws TwitterException
+	 * @throws JSONException
 	 */
 	public TwitterResponse getFriendsStatus(String screenName, long cursor)
-			throws IOException, TwitterException {
+			throws IOException, JSONException {
 		URL url = null;
 		try {
 			if (screenName == null || "".equals(screenName)) {
 				throw new IllegalArgumentException();
 			}
-			url = new URL("http://api.twitter.com/1/statuses/friends/"
-					+ screenName + ".xml?cursor=" + String.valueOf(cursor));
+			StringBuilder stb = new StringBuilder();
+			stb.append("http://api.twitter.com/1/statuses/friends/");
+			stb.append(screenName);
+			stb.append(".json?cursor=");
+			stb.append(cursor);
+			stb.append("&count=");
+			stb.append(GET_COUNT);
+
+			url = new URL(stb.toString());
 		} catch (MalformedURLException e) {
 			throw new RuntimeException(e);
 		}
 
 		URLConnection connect = url.openConnection();
-		InputStream isr = connect.getInputStream();
+		InputStream is = connect.getInputStream();
+		InputStreamReader isr = new InputStreamReader(is, "UTF-8");
+		BufferedReader br = new BufferedReader(isr);
 
-		XmlPullParser xmlParser = Xml.newPullParser();
-		List<UserModel> friendsList = null;
-		long nextCursor = -1;
-		try {
-			xmlParser.setInput(isr, null);
+		StringBuilder stb = new StringBuilder();
+		String line = null;
+		while ((line = br.readLine()) != null) {
+			stb.append(line);
+		}
 
-			int eventType = xmlParser.getEventType();
-			UserModel currentFriend = null;
-			while (eventType != XmlPullParser.END_DOCUMENT) {
-				String name = null;
-				switch (eventType) {
-				case XmlPullParser.START_DOCUMENT:
-					friendsList = new ArrayList<UserModel>(INIT_CAPACITY);
-					break;
-				case XmlPullParser.START_TAG:
-					name = xmlParser.getName();
-					if (name.equalsIgnoreCase(TAG_USER)) {
-						currentFriend = new UserModel();
-					} else if (name.equalsIgnoreCase(TAG_NEXT_CURSOR)) {
-						nextCursor = Long.parseLong(xmlParser.nextText());
-					} else if (name.equalsIgnoreCase(TAG_ERROR)) {
-						throw new TwitterException(xmlParser.nextText());
-					} else if (currentFriend != null) {
-						parseUserElement(xmlParser, currentFriend, name);
-					}
-					break;
-				case XmlPullParser.END_TAG:
-					name = xmlParser.getName();
-					if (name.equalsIgnoreCase(TAG_USER)) {
-						friendsList.add(currentFriend);
-						currentFriend = new UserModel();
-					}
-					break;
-				}
-				eventType = xmlParser.next();
-			}
-		} catch (XmlPullParserException e) {
-			e.printStackTrace();
+		JSONObject json = new JSONObject(stb.toString());
+
+		JSONArray jsons = json.getJSONArray(TAG_USERS);
+
+		List<UserModel> friendsList = new ArrayList<UserModel>();
+		for (int i = 0; i < jsons.length(); i++) {
+			JSONObject userJson = jsons.getJSONObject(i);
+
+			UserModel user = constructUser(userJson);
+			friendsList.add(user);
 		}
 
 		TwitterResponse res = new TwitterResponse();
+		res.setNextCursor(json.getLong(TAG_NEXT_CURSOR));
 		res.setUserList(friendsList);
-		res.setNextCursor(nextCursor);
 
 		return res;
 	}
@@ -167,79 +155,47 @@ public class TwitterAgent {
 	 *            情報を取得したいユーザ
 	 * @return ユーザデータ
 	 * @throws IOException
-	 * @throws TwitterException
+	 * @throws JSONException
 	 */
 	public UserModel getShowUser(String screenName) throws IOException,
-			TwitterException {
+			JSONException {
 		URL url = null;
 		try {
 			if (screenName == null || "".equals(screenName)) {
 				throw new IllegalArgumentException();
 			}
 			url = new URL(
-					"http://api.twitter.com/1/users/show.xml?screen_name="
+					"http://api.twitter.com/1/users/show.json?screen_name="
 							+ screenName);
 		} catch (MalformedURLException e) {
 			throw new RuntimeException(e);
 		}
 
 		URLConnection connect = url.openConnection();
-		InputStream isr = connect.getInputStream();
+		InputStream is = connect.getInputStream();
+		InputStreamReader isr = new InputStreamReader(is, "UTF-8");
+		BufferedReader br = new BufferedReader(isr);
 
-		XmlPullParser xmlParser = Xml.newPullParser();
-		UserModel currentFriend = null;
-		try {
-			xmlParser.setInput(isr, null);
-
-			int eventType = xmlParser.getEventType();
-			while (eventType != XmlPullParser.END_DOCUMENT) {
-				String name = null;
-				switch (eventType) {
-				case XmlPullParser.START_DOCUMENT:
-					currentFriend = new UserModel();
-					break;
-				case XmlPullParser.START_TAG:
-					name = xmlParser.getName();
-					if (name.equalsIgnoreCase(TAG_ERROR)) {
-						throw new TwitterException(xmlParser.nextText());
-					} else if (currentFriend != null) {
-						parseUserElement(xmlParser, currentFriend, name);
-					}
-					break;
-				case XmlPullParser.END_TAG:
-					name = xmlParser.getName();
-					break;
-				}
-				eventType = xmlParser.next();
-			}
-		} catch (XmlPullParserException e) {
-			e.printStackTrace();
+		StringBuilder stb = new StringBuilder();
+		String line = null;
+		while ((line = br.readLine()) != null) {
+			stb.append(line);
 		}
 
-		return currentFriend;
+		JSONObject userJson = new JSONObject(stb.toString());
+
+		UserModel user = constructUser(userJson);
+
+		return user;
 	}
 
-	/**
-	 * XMLよりデータを1つ読み込む 渡されたユーザデータにセットする
-	 * 
-	 * @param xmlParser
-	 *            読み込み中のXMLParser
-	 * @param currentFriend
-	 *            組み立て中のユーザデータ
-	 * @param name
-	 *            現在処理中のタグ
-	 * @throws XmlPullParserException
-	 * @throws IOException
-	 */
-	private void parseUserElement(XmlPullParser xmlParser,
-			UserModel currentFriend, String name)
-			throws XmlPullParserException, IOException {
-		if (name.equalsIgnoreCase(NAME)) {
-			currentFriend.setName(xmlParser.nextText());
-		} else if (name.equalsIgnoreCase(SCREEN_NAME)) {
-			currentFriend.setScreenName(xmlParser.nextText());
-		} else if (name.equalsIgnoreCase(FRIENDS_COUNT)) {
-			currentFriend.setFriendsCount(Long.parseLong(xmlParser.nextText()));
-		}
+	private UserModel constructUser(JSONObject userJson) throws JSONException {
+		UserModel user = new UserModel();
+
+		user.setScreenName(userJson.getString(SCREEN_NAME));
+		user.setName(userJson.getString(NAME));
+		user.setFriendsCount(userJson.getLong(FRIENDS_COUNT));
+
+		return user;
 	}
 }
