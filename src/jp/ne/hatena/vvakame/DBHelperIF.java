@@ -2,6 +2,11 @@ package jp.ne.hatena.vvakame;
 
 import android.content.Context;
 
+/**
+ * Twitterのデータを格納するDBについての定数を定義
+ * 
+ * @author vvakame
+ */
 public interface DBHelperIF {
 	public static final String DB_NAME = "data.db";
 

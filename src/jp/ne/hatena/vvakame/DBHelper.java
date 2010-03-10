@@ -4,6 +4,11 @@ import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
+/**
+ * Twitterのデータを格納するDBの用意
+ * 
+ * @author vvakame
+ */
 public class DBHelper extends SQLiteOpenHelper implements DBHelperIF {
 
 	// private static final String DB_DROP = "drop table " +

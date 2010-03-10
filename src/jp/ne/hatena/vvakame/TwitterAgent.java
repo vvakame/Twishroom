@@ -13,21 +13,40 @@ import org.xmlpull.v1.XmlPullParserException;
 
 import android.util.Xml;
 
+/**
+ * Twitterとお話をします。ごにょごにょ。
+ * 
+ * @author vvakame
+ */
 public class TwitterAgent {
 
+	/** Twitterから受け取るデータのうち、User部分始まりのタグ */
 	public static final String TAG_USER = "user";
+	/** Twitterから受け取るデータのうち、次のデータのカーソル */
 	public static final String TAG_NEXT_CURSOR = "next_cursor";
+	/** Twitterから受け取るデータのうち、エラーメッセージ */
 	public static final String TAG_ERROR = "error";
 
+	/** ユーザデータのうち、nameのタグ */
 	public static final String NAME = "name";
+	/** ユーザデータのうち、screen_nameのタグ */
 	public static final String SCREEN_NAME = "screen_name";
+	/** ユーザデータのうち、フォロりの人数のタグ */
 	public static final String FRIENDS_COUNT = "friends_count";
 
+	/** カーソルにこの値を指定すると、データの先頭を指す */
 	public static final long INITIAL_CURSOL = -1;
+	/** カーソルにこの値を指定すると、データの最後尾に到達したことを指す */
 	public static final long END_CURSOL = 0;
 
+	/** Twitterから受け取るデータの1回の通信あたりの分量 */
 	private static final int INIT_CAPACITY = 100;
 
+	/**
+	 * ユーザと次のカーソルを一緒に返すためのTuple的なクラス
+	 * 
+	 * @author vvakame
+	 */
 	public class TwitterResponse {
 		private List<UserModel> userList = null;
 		private long nextCursor = -1;
@@ -49,14 +68,35 @@ public class TwitterAgent {
 		}
 	}
 
+	/**
+	 * 通常のコンストラクタ
+	 */
 	public TwitterAgent() {
 	}
 
+	/**
+	 * 指定されたユーザのフォロり一覧を取得する
+	 * 
+	 * @param screenName
+	 *            フォロり一覧を取得したいユーザ
+	 * @return フォロり一覧と次のデータへのカーソル
+	 * @throws IOException
+	 * @throws TwitterException
+	 */
 	public TwitterResponse getFriendsStatus(String screenName)
 			throws IOException, TwitterException {
 		return getFriendsStatus(screenName, INITIAL_CURSOL);
 	}
 
+	/**
+	 * 指定されたユーザのフォロり一覧を取得する
+	 * 
+	 * @param screenName
+	 *            フォロり一覧を取得したいユーザ
+	 * @return フォロり一覧と次のデータへのカーソル
+	 * @throws IOException
+	 * @throws TwitterException
+	 */
 	public TwitterResponse getFriendsStatus(String screenName, long cursor)
 			throws IOException, TwitterException {
 		URL url = null;
@@ -120,6 +160,15 @@ public class TwitterAgent {
 		return res;
 	}
 
+	/**
+	 * 指定されたユーザについての情報を取得します
+	 * 
+	 * @param screenName
+	 *            情報を取得したいユーザ
+	 * @return ユーザデータ
+	 * @throws IOException
+	 * @throws TwitterException
+	 */
 	public UserModel getShowUser(String screenName) throws IOException,
 			TwitterException {
 		URL url = null;
@@ -170,6 +219,18 @@ public class TwitterAgent {
 		return currentFriend;
 	}
 
+	/**
+	 * XMLよりデータを1つ読み込む 渡されたユーザデータにセットする
+	 * 
+	 * @param xmlParser
+	 *            読み込み中のXMLParser
+	 * @param currentFriend
+	 *            組み立て中のユーザデータ
+	 * @param name
+	 *            現在処理中のタグ
+	 * @throws XmlPullParserException
+	 * @throws IOException
+	 */
 	private void parseUserElement(XmlPullParser xmlParser,
 			UserModel currentFriend, String name)
 			throws XmlPullParserException, IOException {

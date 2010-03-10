@@ -2,6 +2,11 @@ package jp.ne.hatena.vvakame;
 
 import java.io.Serializable;
 
+/**
+ * ユーザのデータを表す
+ * 
+ * @author vvakame
+ */
 public class UserModel implements Serializable {
 	private static final long serialVersionUID = 2L;
 

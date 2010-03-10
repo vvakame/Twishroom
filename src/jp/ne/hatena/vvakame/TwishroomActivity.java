@@ -26,29 +26,93 @@ import android.widget.Toast;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.AdapterView.OnItemLongClickListener;
 
+/**
+ * TwishroomのメインとなるActivityです。
+ * 
+ * @author vvakame
+ */
 public class TwishroomActivity extends Activity implements TextWatcher {
 
 	private static final String ACTION_INTERCEPT = "com.adamrocker.android.simeji.ACTION_INTERCEPT";
 	private static final String REPLACE_KEY = "replace_key";
 
+	/** フォロり更新中ダイアログ */
 	private static final int DIALOG_PROGRESS = 1;
 
+	/** フォロり更新中の処理監視のMessage */
 	private static final int MESSAGE_REFRESH_FOLLOWER = 1;
+	/** フォロり更新中の進捗更新のMessage */
 	private static final int MESSAGE_UPDATE_PROGRESS = 2;
+	/** フォロり更新中にエラーが発生した場合のMessage */
 	private static final int MESSAGE_ERROR_HANDLING = 3;
 
+	/** フォロり更新完了のフラグ */
 	private boolean mDone = false;
+	/** フォロり更新中のダイアログ */
 	private ProgressDialog mProgDialog = null;
-	private Handler mProgHandler = null;
 
+	/** ListViewのアイテムクリックイベントリスナーの実装 */
 	private OnItemClickListener mOnClickImpl = null;
+	/** ListViewのアイテムロングクリックイベントリスナーの実装 */
 	private OnItemLongClickListener mOnLongClickImple = null;
 
+	/** 現在編集中の文字列を保持 */
 	private String mEditStr = "";
+	/** Simejiからの呼び出しか否かを保持 */
 	private boolean mFromSimeji = false;
 
+	/** 現在処理対象としているユーザ */
 	private UserModel mCurrentUser = null;
 
+	/** フォロリ更新周りの挙動制御用Handler */
+	private Handler mProgHandler = new Handler() {
+		@Override
+		public void handleMessage(Message msg) {
+			super.handleMessage(msg);
+			switch (msg.what) {
+			case MESSAGE_REFRESH_FOLLOWER:
+
+				if (mDone) {
+					dismissDialog(DIALOG_PROGRESS);
+					EditText eText = (EditText) findViewById(R.id.edit_name);
+					if (eText == null) {
+						setContentView(R.layout.main);
+
+						eText = (EditText) findViewById(R.id.edit_name);
+						eText.setText(mEditStr);
+						eText.addTextChangedListener(TwishroomActivity.this);
+
+						ListView listView = (ListView) findViewById(R.id.user_list);
+						listView.setOnItemClickListener(mOnClickImpl);
+						listView.setOnItemLongClickListener(mOnLongClickImple);
+					}
+					refreshListView(mEditStr);
+				} else {
+					mProgHandler.sendEmptyMessageDelayed(
+							MESSAGE_REFRESH_FOLLOWER, 100);
+				}
+
+				break;
+
+			case MESSAGE_UPDATE_PROGRESS:
+				mProgDialog.setMessage(msg.obj.toString());
+				break;
+
+			case MESSAGE_ERROR_HANDLING:
+				String msgStr = msg.obj.toString();
+				Toast.makeText(TwishroomActivity.this, msgStr,
+						Toast.LENGTH_LONG).show();
+				break;
+
+			default:
+				break;
+			}
+		}
+	};
+
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -101,59 +165,15 @@ public class TwishroomActivity extends Activity implements TextWatcher {
 		} else {
 			setContentView(R.layout.main_data_none);
 		}
-
-		createHandler();
 	}
 
-	private void createHandler() {
-		mProgHandler = new Handler() {
-			@Override
-			public void handleMessage(Message msg) {
-				super.handleMessage(msg);
-				switch (msg.what) {
-				case MESSAGE_REFRESH_FOLLOWER:
-
-					if (mDone) {
-						dismissDialog(DIALOG_PROGRESS);
-						EditText eText = (EditText) findViewById(R.id.edit_name);
-						if (eText == null) {
-							setContentView(R.layout.main);
-
-							eText = (EditText) findViewById(R.id.edit_name);
-							eText.setText(mEditStr);
-							eText
-									.addTextChangedListener(TwishroomActivity.this);
-
-							ListView listView = (ListView) findViewById(R.id.user_list);
-							listView.setOnItemClickListener(mOnClickImpl);
-							listView
-									.setOnItemLongClickListener(mOnLongClickImple);
-						}
-						refreshListView(mEditStr);
-					} else {
-						mProgHandler.sendEmptyMessageDelayed(
-								MESSAGE_REFRESH_FOLLOWER, 100);
-					}
-
-					break;
-
-				case MESSAGE_UPDATE_PROGRESS:
-					mProgDialog.setMessage(msg.obj.toString());
-					break;
-
-				case MESSAGE_ERROR_HANDLING:
-					String msgStr = msg.obj.toString();
-					Toast.makeText(TwishroomActivity.this, msgStr,
-							Toast.LENGTH_LONG).show();
-					break;
-
-				default:
-					break;
-				}
-			}
-		};
-	}
-
+	/**
+	 * 渡された文字列の先頭に"@"がついているかを返す
+	 * 
+	 * @param str
+	 *            対象文字列
+	 * @return strの先頭が"@"であればtrue, そうでなければfalse
+	 */
 	private boolean isPrefixAtmark(String str) {
 		boolean ret = false;
 		if (str != null && !str.equals("") && str.charAt(0) == '@') {
@@ -162,6 +182,13 @@ public class TwishroomActivity extends Activity implements TextWatcher {
 		return ret;
 	}
 
+	/**
+	 * 渡された文字列の先頭に"@"をつけて返す 既に付加されている場合は何もせず返す
+	 * 
+	 * @param str
+	 *            対象文字列
+	 * @return strの頭に"@"を付加した文字列
+	 */
 	private String addAtmark(String str) {
 		if (isPrefixAtmark(str)) {
 			return str;
@@ -170,6 +197,13 @@ public class TwishroomActivity extends Activity implements TextWatcher {
 		}
 	}
 
+	/**
+	 * 渡された文字列の先頭に"@"がついていれば取り除いて返す 最初から付加されていなければ何もせず返す
+	 * 
+	 * @param str
+	 *            対象文字列
+	 * @return strの先頭から"@"を取り除いた文字列
+	 */
 	private String removeAtmark(String str) {
 		if (isPrefixAtmark(str)) {
 			return str.substring(1);
@@ -178,6 +212,14 @@ public class TwishroomActivity extends Activity implements TextWatcher {
 		}
 	}
 
+	/**
+	 * Simejiに文字列を返す "@"付加や" "付加の設定があれば付加してから送る TwishroomActivityは終了する
+	 * 
+	 * @param result
+	 *            返したい文字列
+	 * @param applyOption
+	 *            オプションを反映するか否か
+	 */
 	private void pushToSimeji(String result, boolean applyOption) {
 		if (applyOption) {
 			result = PreferencesActivity.isSignAtmark(this) ? addAtmark(result)
@@ -192,6 +234,12 @@ public class TwishroomActivity extends Activity implements TextWatcher {
 		finish();
 	}
 
+	/**
+	 * 渡された文字列を元に、DBより該当のユーザ達を検索して返す
+	 * 
+	 * @param partOfScreenName
+	 *            検索したいユーザ(先頭一致)
+	 */
 	private void refreshListView(String partOfScreenName) {
 		String name = removeAtmark(partOfScreenName);
 
@@ -204,6 +252,13 @@ public class TwishroomActivity extends Activity implements TextWatcher {
 		listView.setAdapter(userAdapter);
 	}
 
+	/**
+	 * DBより指定のユーザを探索する 複数見つかった場合nullを返す
+	 * 
+	 * @param name
+	 *            検索したいユーザ(先頭一致)
+	 * @return 1名見つかった場合はそのユーザ それ以外の場合はnull
+	 */
 	private UserModel detectUser(String name) {
 		String strippedName = removeAtmark(name);
 
@@ -217,6 +272,9 @@ public class TwishroomActivity extends Activity implements TextWatcher {
 		}
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		super.onCreateOptionsMenu(menu);
@@ -225,6 +283,9 @@ public class TwishroomActivity extends Activity implements TextWatcher {
 		return true;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		boolean ret = true;
@@ -252,6 +313,9 @@ public class TwishroomActivity extends Activity implements TextWatcher {
 		return ret;
 	}
 
+	/**
+	 * フォロり更新の実行 別スレッドを作成し非同期に更新を行う 更新動作中はプログレスダイアログを表示し、ユーザを待たせる
+	 */
 	private void refreshFriendsStatus() {
 		mDone = false;
 
@@ -339,6 +403,9 @@ public class TwishroomActivity extends Activity implements TextWatcher {
 		}.start();
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	protected Dialog onCreateDialog(int id) {
 		switch (id) {
@@ -353,6 +420,9 @@ public class TwishroomActivity extends Activity implements TextWatcher {
 		return null;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	protected void onPrepareDialog(int id, Dialog dialog) {
 		switch (id) {
@@ -369,15 +439,24 @@ public class TwishroomActivity extends Activity implements TextWatcher {
 		}
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public void afterTextChanged(Editable s) {
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public void beforeTextChanged(CharSequence s, int start, int count,
 			int after) {
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public void onTextChanged(CharSequence s, int start, int before, int count) {
 		mEditStr = s.toString();
@@ -385,6 +464,11 @@ public class TwishroomActivity extends Activity implements TextWatcher {
 		refreshListView(mEditStr);
 	}
 
+	/**
+	 * Simejiから呼び出された場合のイベントリスナの実装
+	 * 
+	 * @author vvakame
+	 */
 	class FromSimejiImpl extends UsuallyImpl implements OnItemClickListener {
 		@Override
 		public void onItemClick(AdapterView<?> parent, View view, int position,
@@ -402,6 +486,11 @@ public class TwishroomActivity extends Activity implements TextWatcher {
 		}
 	}
 
+	/**
+	 * Simeji以外から呼び出された場合のイベントリスナの実装
+	 * 
+	 * @author vvakame
+	 */
 	class NotCalledBySimejiImpl extends UsuallyImpl implements
 			OnItemClickListener {
 		@Override
@@ -412,6 +501,11 @@ public class TwishroomActivity extends Activity implements TextWatcher {
 		}
 	}
 
+	/**
+	 * イベントリスナの実装 呼び出し元に依存しない
+	 * 
+	 * @author vvakame
+	 */
 	class UsuallyImpl implements OnItemLongClickListener {
 		@Override
 		public boolean onItemLongClick(AdapterView<?> parent, View view,

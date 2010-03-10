@@ -11,12 +11,20 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
+/**
+ * Twitterのデータ UserModelのAdapter
+ * 
+ * @author vvakame
+ */
 public class TwitterAdapter extends ArrayAdapter<UserModel> {
 
 	private Context con = null;
 	private List<UserModel> mUserList = null;
 	private Map<String, UserModel> mUserMap = null;
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public TwitterAdapter(Context context, int textViewResourceId,
 			List<UserModel> objects) {
 		super(context, textViewResourceId, objects);
@@ -29,6 +37,9 @@ public class TwitterAdapter extends ArrayAdapter<UserModel> {
 		}
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public View getView(int position, View convertView, ViewGroup parent) {
 		if (convertView == null) {
@@ -53,14 +64,31 @@ public class TwitterAdapter extends ArrayAdapter<UserModel> {
 		return convertView;
 	}
 
+	/**
+	 * 内部で保持しているユーザリストを返す 編集しないこと
+	 * 
+	 * @return ユーザリスト
+	 */
 	public List<UserModel> getUserList() {
 		return mUserList;
 	}
 
+	/**
+	 * 内部で保持しているユーザリストを返す 編集しないこと
+	 * 
+	 * @return ユーザのマップ
+	 */
 	public Map<String, UserModel> getUserMap() {
 		return mUserMap;
 	}
 
+	/**
+	 * 指定されたユーザに完全に一致するデータを持っていたらそれを返す
+	 * 
+	 * @param screenName
+	 *            ユーザ名
+	 * @return ユーザデータ
+	 */
 	public UserModel getUser(String screenName) {
 		return mUserMap.get(screenName);
 	}

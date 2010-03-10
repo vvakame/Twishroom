@@ -1,5 +1,10 @@
 package jp.ne.hatena.vvakame;
 
+/**
+ * Twitterとお話中にエラーが発生した場合投げられる例外
+ * 
+ * @author vvakame
+ */
 public class TwitterException extends Exception {
 	private static final long serialVersionUID = 1L;
 

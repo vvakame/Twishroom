@@ -8,6 +8,11 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
+/**
+ * TwitterのデータのDAO
+ * 
+ * @author vvakame
+ */
 public class UserDao {
 
 	private static final String ORDER_BY = UserModel.COLUMN_FAVORITE
@@ -19,6 +24,13 @@ public class UserDao {
 		mHelper = new DBHelper(con);
 	}
 
+	/**
+	 * TwitterのデータをDBへ保持させる Mergeの動作
+	 * 
+	 * @param model
+	 *            ユーザデータ
+	 * @return 更新後のユーザデータ
+	 */
 	public UserModel save(UserModel model) {
 		SQLiteDatabase db = mHelper.getWritableDatabase();
 		UserModel result = null;
@@ -43,6 +55,12 @@ public class UserDao {
 		return result;
 	}
 
+	/**
+	 * 指定されたユーザデータを削除する
+	 * 
+	 * @param model
+	 *            削除するユーザデータ
+	 */
 	public void delete(UserModel model) {
 		SQLiteDatabase db = mHelper.getWritableDatabase();
 		try {
@@ -54,6 +72,9 @@ public class UserDao {
 		}
 	}
 
+	/**
+	 * truncateする (SQLiteにtruncateはないので全てdelte)
+	 */
 	public void truncate() {
 		SQLiteDatabase db = mHelper.getWritableDatabase();
 		try {
@@ -63,6 +84,12 @@ public class UserDao {
 		}
 	}
 
+	/**
+	 * 指定されたユーザデータを読み込む
+	 * 
+	 * @param rowId
+	 * @return ユーザデータ
+	 */
 	public UserModel load(Long rowId) {
 		SQLiteDatabase db = mHelper.getReadableDatabase();
 		Cursor cursor = null;
@@ -81,6 +108,13 @@ public class UserDao {
 		return model;
 	}
 
+	/**
+	 * 指定されたユーザデータを読み込む
+	 * 
+	 * @param name
+	 *            読み込むユーザのScreenName
+	 * @return ユーザデータ
+	 */
 	public UserModel load(String name) {
 		SQLiteDatabase db = mHelper.getReadableDatabase();
 		Cursor cursor = null;
@@ -99,6 +133,13 @@ public class UserDao {
 		return model;
 	}
 
+	/**
+	 * ユーザデータを検索する(前方一致)
+	 * 
+	 * @param name
+	 *            検索するScreenName
+	 * @return ユーザデータのリスト
+	 */
 	public List<UserModel> search(String name) {
 		SQLiteDatabase db = mHelper.getReadableDatabase();
 		Cursor cursor = null;
@@ -122,6 +163,11 @@ public class UserDao {
 		return userList;
 	}
 
+	/**
+	 * DBから全データを取得する
+	 * 
+	 * @return ユーザデータのリスト
+	 */
 	public List<UserModel> list() {
 		SQLiteDatabase db = mHelper.getReadableDatabase();
 		Cursor cursor = null;
@@ -143,6 +189,11 @@ public class UserDao {
 		return modelList;
 	}
 
+	/**
+	 * データの数を数えあげて返す
+	 * 
+	 * @return 総データ数
+	 */
 	public long countAll() {
 		SQLiteDatabase db = mHelper.getReadableDatabase();
 		Cursor cursor = null;
@@ -160,6 +211,13 @@ public class UserDao {
 		return count;
 	}
 
+	/**
+	 * DBのカーソルからユーザデータへ変換する
+	 * 
+	 * @param cursor
+	 *            カーソル
+	 * @return ユーザデータ
+	 */
 	private UserModel getUserModel(Cursor cursor) {
 		UserModel model = new UserModel();
 
